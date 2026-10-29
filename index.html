@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ship Intake</title>
+</head>
+<body>
+  <h1>Ship Intake</h1>
+  <p>Ship Intake takes a plain-English BUILD, turns it into a GitHub issue, has a Cloud Agent open a pull request, and leaves an Overseer to Approve or Flag.</p>
+  <button type="button" id="show-now">Show date and time</button>
+  <p id="now" aria-live="polite"></p>
+  <script>
+    document.getElementById("show-now").addEventListener("click", function () {
+      document.getElementById("now").textContent = new Date().toLocaleString();
+    });
+  </script>
+</body>
+</html>
