@@ -1,0 +1,1 @@
+Ship Intake takes a plain-English BUILD request, opens a GitHub issue for it, has a Cursor Cloud Agent turn that issue into a pull request, and leaves the Overseer to Approve or Flag the result. This file was added on 2026-10-29.
