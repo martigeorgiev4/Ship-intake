@@ -1,19 +1,827 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ship Intake</title>
-</head>
-<body>
-  <h1>Ship Intake</h1>
-  <p>Ship Intake takes a plain-English BUILD, turns it into a GitHub issue, has a Cloud Agent open a pull request, and leaves an Overseer to Approve or Flag.</p>
-  <button type="button" id="show-now">Show date and time</button>
-  <p id="now" aria-live="polite"></p>
-  <script>
-    document.getElementById("show-now").addEventListener("click", function () {
-      document.getElementById("now").textContent = new Date().toLocaleString();
-    });
-  </script>
-</body>
-</html>
+<!doctype html>
+<html lang="en"><head>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<!-- hub-build-v=20261030c --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#DAC5AC"><title>Fleet Hub</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;background:#DAC5AC}
+body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;color:#2A2624;display:flex;justify-content:center;-webkit-font-smoothing:antialiased}
+.wrap{width:100%;max-width:420px;padding:56px 20px 40px;min-height:100vh;display:flex;flex-direction:column}
+h1{font-size:30px;font-weight:700;letter-spacing:-.02em;color:#1F1B18}
+.sub{margin-top:6px;font-size:15px;color:#5A4E42}
+.tiles .tile.conn{background:linear-gradient(160deg,#2A2624,#2C2622);color:#EDE6DC}.conn .enter{color:#DAC5AC}.xref{font-size:11px;color:#C4B09A;margin-top:5px;font-style:italic}.cpl{display:inline-block;padding:1px 8px;border-radius:9px;font-size:11px;font-weight:700;background:#DAC5AC;color:#2A2624}.cpl.na{background:#4A403A;color:#FFF8F0}.crow{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid #2F2D2A}.monc pre{white-space:pre-wrap;font-size:11px;background:#151413;padding:8px;border-radius:8px;overflow:auto}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:28px}.tiles.tiles-bot{margin-top:12px}
+.tile{all:unset;cursor:pointer;border-radius:18px;padding:18px 16px;min-height:168px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 6px 18px rgba(42,38,36,.18);transition:transform .12s}
+.tile:active{transform:scale(.98)}
+.tile:focus-visible{outline:2px solid #2A2624;outline-offset:3px}
+.improve{background:linear-gradient(160deg,#2A2624,#2C2622);color:#F5EFE6}
+.hub{background:linear-gradient(160deg,#2C2C2C,#2A2826);color:#EDE6DC}
+.name{font-size:20px;font-weight:650}
+.hint{margin-top:6px;font-size:13px;opacity:.72;line-height:1.35}
+.enter{font-size:14px;font-weight:600}
+.improve .enter{color:#C4B09A}.hub .enter{color:#9A9590}
+.pill{all:unset;cursor:pointer;align-self:center;margin:12px auto;background:#2C2826;color:#A89F94;font-size:13px;padding:10px 18px;border-radius:999px;display:block;text-align:center}.tiles-bot{margin-top:0}
+.toast{text-align:center;margin:0 auto;font-size:12px;color:#6B5E50;min-height:0;line-height:1.2}
+.back{all:unset;cursor:pointer;font-size:14px;color:#3A332D;font-weight:600;margin-bottom:24px}
+.card{margin-top:20px;border-radius:18px;padding:20px;background:#2A2624;color:#EDE6DC;font-size:14px;line-height:1.5}
+[hidden]{display:none!important}
+.hubv .back{color:#3A332D}.meta{font-size:12px;color:#5A4E42;margin-top:4px}
+.grp{margin-top:22px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5A4E42}
+.bot{margin-top:10px;border-radius:16px;padding:14px 16px;background:linear-gradient(160deg,#2C2C2C,#2A2826);color:#EDE6DC;font-size:13px;line-height:1.45}
+.bn{display:flex;justify-content:space-between;gap:8px;font-size:15px;font-weight:650}.dot{font-size:11px;font-weight:600;color:#C4B09A}
+.role{opacity:.65;margin-top:2px}.sig{margin-top:8px;color:#DAC5AC}.mut{margin-top:8px;opacity:.5;font-style:italic}.row{margin-top:6px;opacity:.8}
+.rec{margin-top:8px;border-radius:12px;padding:10px 12px;background:#2C2622;color:#EDE6DC}.lab{margin-top:10px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#DAC5AC}.rt{font-weight:650}.rd{opacity:.8;margin-top:2px}.ev{opacity:.55;font-style:italic;font-size:12px;margin-top:4px}.nm{font-size:11px;font-weight:600;color:#2A2624;background:#DAC5AC;border-radius:999px;padding:1px 8px;margin-left:6px}.cp{all:unset;cursor:pointer;margin-top:6px;font-size:12px;font-weight:600;color:#A89F94}.cp:hover,.cp.ok{color:#DAC5AC}.imv .bot{background:linear-gradient(160deg,#2A2624,#2C2622)}
+.dvh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}.dvn{font:700 20px system-ui}.dvb{min-width:24px;height:24px;padding:0 7px;border-radius:12px;background:#DAC5AC;color:#2A2624;font:700 13px/24px system-ui;text-align:center}.ovs{border-top:1px solid #4A403A;border-bottom:1px solid #4A403A;padding:8px 0;margin-bottom:6px;font-size:13px;line-height:1.5}.ovs b{color:#DAC5AC;font-weight:600}.hubtile{min-width:0;display:flex;flex-direction:column;justify-content:center;min-height:72px;padding:10px 12px;border:1px solid #3A3836;border-radius:16px;background:linear-gradient(160deg,#2C2C2C,#2A2826);color:#EDE6DC;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif}.hubtile .hn{font-size:15px;font-weight:650;line-height:1.25;color:#F5EFE6}.hubtile .hsig{font-size:12px;font-weight:500;color:#DAC5AC;margin-top:4px;line-height:1.3}.hubtile .hsnap{font-size:12px;font-weight:400;color:#A8A4A0;margin-top:3px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hubdet{max-width:420px;background:#1F1E1C;border:1px solid #3A3836;border-radius:16px;padding:16px;margin-top:8px;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;font-size:14px;line-height:1.45;color:#FFF8F0;-webkit-font-smoothing:antialiased}.hubdet .hname{font-size:20px;font-weight:700;line-height:1.25;color:#FFFFFF;margin:0}.hubdet .hgrp{font-size:13px;font-weight:500;color:#DAC5AC;margin-top:4px}.hubdet .hsec{border-top:1px solid #3A3836;padding:12px 0;font-size:14px;line-height:1.5;color:#FFF8F0}.hubdet .hsec:first-of-type{border-top:0;padding-top:4px}.hubdet .hsec b{display:block;color:#DAC5AC;font-weight:650;font-size:12px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}.hubdet .hmut{margin-top:6px;font-size:13px;line-height:1.4;color:#D8D0C6;font-style:italic}
+.tgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-width:420px;margin:6px 0 4px}.bottile{position:relative;display:flex;flex-direction:column;justify-content:space-between;min-height:118px;padding:14px 12px 12px;border:1px solid #4A403A;border-radius:16px;background:linear-gradient(160deg,#2A2624,#2C2622);color:#F5EFE6;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25)}.bottile>span:first-child{font:600 15px system-ui;padding-right:24px}.bottile .bsub{font:400 11px system-ui;color:#C4B09A;margin-top:6px}.bottile .bsnap{font:400 11px system-ui;color:#9A9590;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.bottile.upd{border-color:#DAC5AC}.bottile.la{opacity:.5}.bottile .badge{position:absolute;top:8px;right:8px;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#DAC5AC;color:#2A2624;font:700 12px/20px system-ui;text-align:center}.tiles .tile.mon{background:linear-gradient(160deg,#252422,#2A2A28);color:#EDE6DC}.mon .enter{color:#DAC5AC}.tile.t4{background:linear-gradient(160deg,#2C2826,#2E2A27);color:#C9C0B5;cursor:default;opacity:.85}.t4 .enter{color:#8F877E}.hfm{display:flex;gap:4px;margin-top:5px}.hfm i{width:16px;height:4px;border-radius:2px;background:#4A4744}.hfm i.on{background:#DAC5AC}.hubtile .hmq{font-size:11px;color:#DAC5AC;margin-top:3px}
+.hubtile.changed{box-shadow:0 0 0 2px #DAC5AC,0 2px 8px rgba(0,0,0,.25);animation:hubpulse .9s ease}
+@keyframes hubpulse{0%{transform:scale(1)}40%{transform:scale(1.02)}100%{transform:scale(1)}}
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#2A9A5B;margin-right:6px;vertical-align:middle;box-shadow:0 0 0 0 rgba(42,154,91,.6);animation:livedot 1.6s infinite}
+@keyframes livedot{0%{box-shadow:0 0 0 0 rgba(42,154,91,.55)}70%{box-shadow:0 0 0 6px rgba(42,154,91,0)}100%{box-shadow:0 0 0 0 rgba(42,154,91,0)}}
+.grp .gcount{font-weight:500;opacity:.75;margin-left:6px;letter-spacing:0}
+.hubdet .hspk{display:block;margin:4px 0 6px}.hubdet a.htx{color:#DAC5AC;font-weight:650;text-decoration:underline}.hubdet ul.hql{margin:6px 0 0 18px}.monc{background:#1F1E1C;border:1px solid #3A3836;border-radius:16px;padding:14px;margin-top:10px;color:#FFF8F0;font-size:14px;line-height:1.45}.monc .mn{font-size:16px;font-weight:700;color:#FFF}.monc .mr{font-size:12px;color:#DAC5AC;margin-top:3px}.monc .mcd{margin-top:8px;padding:8px 10px;border-radius:10px;background:#2A2A28}.monc .mcd b{color:#DAC5AC;font-size:11px;letter-spacing:.05em}.monc .mut2{color:#D8D0C6;font-size:12px;margin-top:3px}
+
+.ath{margin-top:10px;padding-top:10px;border-top:1px solid #3A3836}
+.ath .abtn{all:unset;cursor:pointer;display:inline-block;margin:6px 8px 0 0;padding:8px 12px;border-radius:999px;background:#DAC5AC;color:#2A2624;font:650 12px Inter,system-ui;box-shadow:0 1px 0 rgba(0,0,0,.15)}
+.ath .abtn.sec{background:#3A3836;color:#FFF8F0}
+.ath input{width:100%;margin-top:8px;padding:10px 12px;border-radius:10px;border:1px solid #3A3836;background:#252422;color:#FFF8F0;font:400 13px Inter,system-ui}
+.gterm{margin-top:0;border:1px solid #3A3836;border-radius:14px;background:#121110;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.03)}
+.gterm-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-bottom:1px solid #2A2927;background:#1A1918}
+.gterm-head .ttl{font:650 13px Inter,system-ui;color:#FFF8F0}
+.gterm-head .live{font:500 11px Inter,system-ui;color:#B8E0B8}
+.gterm-out{min-height:160px;max-height:360px;overflow:auto;padding:12px 14px;white-space:pre-wrap;overflow-wrap:anywhere;color:#DAC5AC;font:400 13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+.gterm-out .dim{color:#8A8078}
+.gterm-out .err{color:#E0A0A0}
+.gterm-row{display:flex;gap:8px;align-items:center;padding:10px;border-top:1px solid #2A2927;background:#1A1918}
+.gterm-row .prompt{flex:0 0 auto;color:#DAC5AC;font:700 14px ui-monospace,Menlo,monospace;padding:0 2px}
+.gterm-row textarea{flex:1;min-height:40px;max-height:100px;resize:none;border-radius:10px;border:1px solid #4A403A;background:#0F0E0D;color:#FFF8F0;padding:10px 12px;font:400 14px ui-monospace,SFMono-Regular,Menlo,monospace}
+.gterm-row textarea:focus{outline:none;border-color:#DAC5AC}
+.gterm-row button{flex:0 0 auto;padding:10px 14px;border-radius:10px;border:0;background:#DAC5AC;color:#151413;font:600 13px Inter,system-ui;cursor:pointer}
+.gterm-row button.ghost{background:#2A2927;color:#DAC5AC}
+.gterm-row button:disabled{opacity:.55;cursor:default}
+
+.ath .ast{margin-top:6px;font-size:12px;color:#D8D0C6}
+.crow.auth{flex-direction:column;align-items:stretch;gap:6px}
+.crow,.crowtop,.csec .mn,.csec .mr,.csec .mut2{overflow-wrap:anywhere;word-break:break-word;min-width:0;white-space:normal}.crow>span{min-width:0}.crow.stk{flex-direction:column;align-items:stretch;gap:4px}.csec pre{white-space:pre-wrap;overflow-x:auto;max-width:100%}.alist{display:flex;flex-direction:column}.csec .crow.aadd{display:block;padding:10px 0}.crow.aadd .crowtop{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}.crow.aadd .crowtop>span{flex:1 1 auto;min-width:0}.crow.aadd .abtn{flex-shrink:0}.crow.aadd .mut2{margin-top:3px}.abtn.add{background:#DAC5AC;color:#2A2624;border:0;border-radius:9px;padding:6px 14px;font-weight:700}.abtn.add[disabled]{opacity:.6}a.abtn{text-decoration:none;display:inline-block}
+.crow.auth .crowtop{display:flex;justify-content:space-between;gap:8px;align-items:center}
+
+
+.csec{margin-top:10px;border:1px solid #3A3836;border-radius:16px;background:#1F1E1C;overflow:hidden}
+.csec>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;color:#FFF8F0;font:650 14px Inter,system-ui;user-select:none}
+.csec>summary::-webkit-details-marker{display:none}
+.csec>summary .chev{color:#DAC5AC;font-size:12px;margin-left:8px;transition:transform .15s}
+.csec[open]>summary .chev{transform:rotate(180deg)}
+.csec>summary .cnt{color:#D8D0C6;font-weight:500;font-size:12px;margin-left:auto;margin-right:8px}
+.csec[open]>summary{border-bottom:1px solid #3A3836}
+.csec .cbody{padding:10px 12px 14px}
+.csec .crow{padding:8px 0;border-bottom:1px solid #2A2927}
+.csec .crow:last-child{border-bottom:0}
+.aadd a{color:#DAC5AC;font-weight:650;text-decoration:none}
+
+
+/* contrast lock: dark text on sand, cream on charcoal */
+html,body{background:#DAC5AC;color:#1F1B18}
+h1{color:#1F1B18}
+.sub{color:#3A332D}
+.meta{color:#3A332D}
+.grp{color:#3A332D}
+.back{color:#1F1B18}
+.pill{background:#2A2624;color:#FFF8F0}
+.mut{color:#5A4E42}
+.toast{color:#1F1B18}
+.imv .meta,.hubv .meta,#monv .meta,#connv .meta{color:#3A332D}
+.bottile{color:#FFF8F0}
+.bottile .bsub{color:#D8D0C6}
+.bottile .bsnap{color:#C4B09A}
+.badge{background:#DAC5AC;color:#1F1B18}
+.bot,.card,.monc,.csec,.hubdet,.rec,.mcd{color:#FFF8F0}
+.mn{color:inherit}
+.monc .mn,.csec .mn,.bot .mn{color:#FFFFFF}
+.mr{color:#DAC5AC}
+.mut2{color:#D8D0C6}
+.dvn{color:#FFFFFF}
+.dot{color:#DAC5AC}
+.lab{color:#DAC5AC}
+.cpl{background:#DAC5AC;color:#1F1B18}
+.cpl.na{background:#4A403A;color:#FFF8F0}
+.csec>summary{color:#FFF8F0}
+.csec .cnt{color:#D8D0C6}
+.crow{color:#FFF8F0}
+.ath .abtn{background:#DAC5AC;color:#1F1B18}
+.ath .abtn.sec{background:#3A3836;color:#FFF8F0}
+.ath input{background:#151413;color:#FFF8F0;border:1px solid #4A403A}
+.ast{color:#D8D0C6}
+.aadd a{color:#DAC5AC}
+.tile.improve,.tile.hub,.tile.mon,.tile.conn{color:#FFF8F0}
+.improve .name,.hub .name,.mon .name,.conn .name{color:#FFF8F0}
+.improve .hint,.hub .hint,.mon .hint,.conn .hint{color:#D8D0C6}
+
+
+.dv{padding:14px 12px 16px}
+.dv .lab{margin-top:12px}
+.modal-bg{position:fixed;inset:0;background:rgba(42,38,36,.55);z-index:80;display:flex;align-items:flex-end;justify-content:center;padding:16px}
+.modal{width:100%;max-width:420px;background:#2A2624;color:#FFF8F0;border-radius:18px 18px 12px 12px;padding:18px 16px 16px;box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.modal h3{margin:0 0 6px;font:700 18px system-ui;color:#FFF8F0}
+.modal p{margin:0 0 12px;font:400 13px system-ui;color:#D8D0C6}
+.modal textarea{width:100%;min-height:96px;border-radius:12px;border:1px solid #4A403A;background:#1F1E1C;color:#FFF8F0;padding:12px;font:400 15px system-ui;resize:vertical;box-sizing:border-box}
+.modal .row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.modal .btn{flex:1;min-width:120px;border:0;border-radius:12px;padding:12px 14px;font:600 14px system-ui;cursor:pointer}
+.modal .btn.pri{background:#DAC5AC;color:#2A2624}
+.modal .btn.sec{background:#3A332D;color:#FFF8F0}
+.modal .btn.ghost{background:transparent;color:#C4B09A;flex:0 0 auto;padding:12px 8px}
+.modal .gstep{margin-top:10px;display:none}
+.modal .gstep.on{display:block}
+.modal .glabel{font:650 11px system-ui;letter-spacing:.04em;text-transform:uppercase;color:#DAC5AC;margin:0 0 6px}
+.modal select,.modal .gpreview{width:100%;border-radius:12px;border:1px solid #4A403A;background:#1F1E1C;color:#FFF8F0;padding:11px 12px;font:400 14px system-ui;box-sizing:border-box}
+.modal .gpreview{margin-top:10px;font-size:13px;line-height:1.45;color:#D8D0C6;min-height:72px;white-space:pre-wrap}
+.modal .ghint{font:400 12px system-ui;color:#C4B09A;margin:6px 0 0}
+.modal #new-ask-row{display:flex}
+.modal #new-build-panel{display:none}
+.modal.build-mode #new-ask-row{display:none !important}
+.modal.build-mode #new-build-panel{display:block !important}
+.modal.build-mode textarea#newtxt{display:none !important}
+.modal .grec{margin-top:8px;display:flex;flex-direction:column;gap:8px}
+.modal .grec label{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;border:1px solid #4A403A;background:#252422;cursor:pointer;font:400 13px system-ui;color:#FFF8F0;line-height:1.35}
+.modal .grec label.on{border-color:#DAC5AC;background:#2E2A28}
+.modal .grec input{margin-top:3px;flex:0 0 auto}
+.modal .gstatus{font:400 12px system-ui;color:#C4B09A;margin-top:6px}
+.modal .gadj{width:100%;min-height:56px;margin-top:8px;border-radius:12px;border:1px solid #4A403A;background:#1F1E1C;color:#FFF8F0;padding:10px 12px;font:400 13px system-ui;box-sizing:border-box;resize:vertical}
+
+
+.monc .mact{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.monc .mact button{border:0;border-radius:10px;padding:8px 10px;font:600 12px system-ui;cursor:pointer;background:#3A332D;color:#FFF8F0}
+.monc .mact button.pri{background:#DAC5AC;color:#2A2624}
+.monc .tag{display:inline-block;margin-top:6px;padding:2px 8px;border-radius:8px;font:600 11px system-ui;background:#3A332D;color:#DAC5AC}
+.monc .tag.ok{background:#2A3A2A;color:#B8E0B8}
+.monc .tag.warn{background:#3A3020;color:#E8C090}
+.monc .tag.bad{background:#3A2020;color:#E0A0A0}
+.afeed{margin-top:10px;display:flex;flex-direction:column;gap:8px;max-height:min(62vh,560px);overflow:auto;padding-right:2px}
+.alog{background:#1F1E1C;border:1px solid #3A3836;border-radius:14px;padding:12px 14px;color:#FFF8F0}
+.alog.flash{box-shadow:0 0 0 2px #DAC5AC;animation:hubpulse .9s ease}
+.alog .arow{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.alog .atitle{font-weight:650;font-size:14px;color:#FFF}
+.alog .atime{font-size:11px;color:#DAC5AC;white-space:nowrap}
+.alog .adet{font-size:12px;color:#D8D0C6;margin-top:4px;line-height:1.4}
+.akind{display:inline-block;font:650 10px system-ui;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:7px;margin-right:8px;background:#3A332D;color:#DAC5AC;vertical-align:middle}
+.akind.heartbeat{background:#2A3A2A;color:#B8E0B8}
+.akind.signal{background:#2A3040;color:#A8C8E8}
+.akind.terminal{background:#3A3020;color:#E8C090}
+.akind.connector{background:#302A3A;color:#C8B0E0}
+.akind.heal{background:#3A2A20;color:#E0B090}
+.akind.status{background:#3A332D;color:#DAC5AC}
+.mrow{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:10px 12px;margin-top:6px;background:#1F1E1C;border:1px solid #3A3836;border-radius:12px}
+.mrow.attn{border-color:#8A5A3A;background:#241E1A}
+.mrow.ok{border-color:#2A3A2A}
+.mrow .mleft{min-width:0;flex:1}
+.mrow .mname{font-weight:700;font-size:14px;color:#FFF}
+.mrow .mstat{font-size:12px;color:#DAC5AC;margin-top:2px}
+.mrow .mbadge{font:650 10px system-ui;letter-spacing:.03em;text-transform:uppercase;padding:3px 8px;border-radius:8px;white-space:nowrap;background:#3A332D;color:#DAC5AC}
+.mrow .mbadge.down{background:#3A2020;color:#E0A0A0}
+.mrow .mbadge.stale{background:#3A3020;color:#E8C090}
+.mrow .mbadge.live{background:#2A3A2A;color:#B8E0B8}
+details.macc{margin-top:10px;background:#1F1E1C;border:1px solid #3A3836;border-radius:14px;padding:0 12px 10px}
+details.macc>summary{cursor:pointer;list-style:none;padding:12px 4px;font:650 13px system-ui;color:#FFF8F0;display:flex;justify-content:space-between;gap:8px;align-items:center}
+details.macc>summary::-webkit-details-marker{display:none}
+details.macc>summary::after{content:'▸';color:#DAC5AC;font-size:12px}
+details.macc[open]>summary::after{content:'▾'}
+details.macc .sumr{font:500 12px system-ui;color:#DAC5AC;font-weight:500}
+details.macc .abody{padding:0 2px 4px}
+.afeed{max-height:min(42vh,360px)}
+.alog .adet{display:none}
+.alog.open .adet,.alog details[open] .adet{display:block}
+.alog details{margin-top:4px}
+.alog details>summary{cursor:pointer;font-size:11px;color:#DAC5AC;list-style:none}
+.alog details>summary::-webkit-details-marker{display:none}
+.msum{grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}
+.msum .monc{padding:10px}
+.msum .mn{font-size:20px}
+
+.msum{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:10px}
+.msum .monc{margin-top:0;padding:12px}
+.msum .mn{font-size:22px;font-weight:750}
+.msum .mr{margin-top:2px}
+
+
+</style></head><body>
+<main class="wrap" id="landing">
+<h1>Fleet Hub</h1><p class="sub">Choose a page</p>
+<div class="tiles">
+<button class="tile improve" onclick="location.hash='#improve'"><div><div class="name">Improve</div><div class="hint">Evidence-gated upgrades</div></div><div class="enter">Enter →</div></button>
+<button class="tile hub" onclick="location.hash='#hub'"><div><div class="name">Hub</div><div class="hint">Fleet overview</div></div><div class="enter">Enter →</div></button>
+</div>
+<button class="pill" type="button" onclick="openNewPill()">New chat · New bot</button>
+<div class="toast" id="toast"></div>
+<div class="modal-bg" id="newmodal" hidden>
+  <div class="modal" id="newmodalbox" role="dialog" aria-labelledby="newmodaltitle">
+    <h3 id="newmodaltitle">Start something new</h3>
+    <p id="newmodalblurb">Ask Grok in the text box, or Build a bot with dropdowns only.</p>
+    <textarea id="newtxt" placeholder="e.g. What are the bots stuck on tonight?" oninput="onNewTxtInput()"></textarea>
+    <div class="row" id="new-ask-row">
+      <button type="button" class="btn pri" onclick="submitNew('ask')">Ask Grok</button>
+      <button type="button" class="btn sec" onclick="startBuildGuide()">Build a bot →</button>
+      <button type="button" class="btn ghost" onclick="closeNewPill()">Cancel</button>
+    </div>
+    <div id="new-build-panel">
+      <div class="gstep on" id="gstep-need">
+        <div class="glabel">1 · What do you need?</div>
+        <select id="g-need" onchange="onGuideChange()">
+          <option value="">Choose…</option>
+          <option value="monitor">Watch or monitor something</option>
+          <option value="automate">Automate a repeating task</option>
+          <option value="answer">Answer questions / research</option>
+          <option value="inbox">Handle email or messages</option>
+          <option value="money">Track money, deals, or claims</option>
+          <option value="shop">Shop / automotive ops</option>
+          <option value="code">Coding or ship intake</option>
+          <option value="custom">Something custom</option>
+        </select>
+      </div>
+      <div class="gstep" id="gstep-use">
+        <div class="glabel">2 · What do you use it for?</div>
+        <select id="g-use" onchange="onGuideChange()">
+          <option value="">Choose…</option>
+        </select>
+        <p class="ghint">Picks change with what you need.</p>
+      </div>
+      <div class="gstep" id="gstep-often">
+        <div class="glabel">3 · How often?</div>
+        <select id="g-often" onchange="onGuideChange()">
+          <option value="">Choose…</option>
+          <option value="ondemand">On demand (when I ask)</option>
+          <option value="hourly">Often / hourly</option>
+          <option value="daily">Once a day</option>
+          <option value="weekdays">Weekdays during shop hours</option>
+          <option value="always">Always-on watcher</option>
+        </select>
+      </div>
+      <div class="gstep" id="gstep-preview">
+        <div class="glabel">4 · Grok recommendations</div>
+        <p class="ghint" id="g-rec-status">Finish step 3 and Grok will suggest a couple of tweaks.</p>
+        <div class="grec" id="g-recs"></div>
+        <div class="glabel" style="margin-top:12px">Adjust (optional)</div>
+        <textarea class="gadj" id="g-adjust" placeholder="Change or add anything before create…" oninput="onRecAdjust()"></textarea>
+        <div class="glabel" style="margin-top:12px">Final brief</div>
+        <div class="gpreview" id="g-preview"></div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button type="button" class="btn pri" id="g-create" onclick="submitGuidedBot()" disabled>Create this bot</button>
+        <button type="button" class="btn sec" id="g-refresh-rec" onclick="fetchGuideRecs(true)" disabled>Ask Grok again</button>
+        <button type="button" class="btn ghost" onclick="resetBuildGuide()">← Back</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="tiles tiles-bot">
+<button class="tile mon" onclick="location.hash='#monitor'"><div><div class="name">Monitor</div><div class="hint">Live activity · everything</div></div><div class="enter">Enter →</div></button>
+<button class="tile conn" onclick="location.hash='#connect'"><div><div class="name">Connect</div><div class="hint">Connections · Coding</div><div class="hint tterm" style="color:#DAC5AC;white-space:normal;overflow-wrap:anywhere;margin-top:4px;text-decoration:underline;cursor:pointer" onclick="event.stopPropagation();location.hash='#connect-term'">▸ Terminal · grok-code-agent</div></div><div class="enter">Enter →</div></button>
+</div>
+</main>
+<main class="wrap" id="inner" hidden>
+<button class="back" onclick="location.hash=''">← Back</button>
+<h1 id="ititle"></h1><p class="sub" id="isub"></p>
+<div id="icard"></div><div id="hubv"></div><div id="monv" hidden></div><div id="connv" hidden></div>
+</main>
+<script>var HUB={"as_of": "2026-10-30T00:13:22.264585-04:00", "bots": [{"name": "Privacy Scanner", "group": "Privacy", "role": "Own people-search / data-broker exposure work and related privacy scans for Martin.", "fatigue": "Fresh \u2014 clean last day, no loops.", "mist": {"count": 1, "trend": "up", "previous_day": 0}, "score": "strong", "ok": 0, "fail": 0, "last": {"ts": "2026-10-29T22:10:00.000Z", "src": "heartbeat", "q": "brokers paused", "kind": "activity"}, "leave": false, "id": "0acd11cb-73ee-4195-bffe-d6bbd220fa5a", "fat": {"status": "fresh", "plain": "Fresh \u2014 clean last day, no loops."}, "trend": {"dir": "flat", "reason": "No issue flags in 7 days; mistakes 1 today vs 0 prior day.", "points": [0, 0, 0, 0, 0, 0, 0], "has": true}, "mq": {"count": 1, "items": [{"title": "Per-broker scan coverage list"}]}}, {"name": "Steinburg", "group": "Financial", "role": "Debt, collections, and credit-dispute specialist; finance-math desk behind Rothstein.", "fatigue": "Fresh \u2014 clean last day, no loops.", "mist": {"count": 1, "trend": "up", "previous_day": 0}, "score": "strong", "ok": 0, "fail": 0, "last": {"ts": "2026-10-29T22:11:03.000Z", "src": "heartbeat", "q": "debt desk idle", "kind": "activity"}, "leave": false, "id": "0b22f2ac-3562-4f83-a1c3-cc2f56d7bf14", "fat": {"status": "fresh", "plain": "Fresh \u2014 clean last day, no loops."}, "trend": {"dir": "flat", "reason": "No issue flags in 7 days; mistakes 1 today vs 0 prior day.", "points": [0, 0, 0, 0, 0, 0, 0], "has": true}, "mq": {"count": 1, "items": [{"title": "Dispute-math worksheet per bureau letter"}]}}, {"name": "Zinky", "group": "Emails", "role": "Clean Simpleton 3 Gmail \u2014 throw junk/fake, keep real mail, short clear status with accurate totals.", "fatigue": "Fresh \u2014 wipe clean; off-by-3 only. No loops.", "mist": {"count": 3, "trend": "up", "previous_day": 0}, "score": "mixed", "ok": 0, "fail": 1, "last": {"ts": "2026-10-29T22:10:46.000Z", "src": "heartbeat", "q": "inbox idle", "kind": "activity"}, "leave": false, "id": "123724fd-65ab-4365-9b43-db5df9e2f0e8", "fat": {"status": "fresh", "plain": "Fresh \u2014 wipe clean; off-by-3 only. No loops."}, "trend": {"dir": "worse", "reason": "Issue flags rose in last 3 days (1) vs earlier (0); mistakes 3 vs 0.", "points": [0, 0, 0, 0, 0, 1, 0], "has": true}, "mq": {"count": 1, "items": [{"title": "Exact Gmail count pagination before any wipe receipt"}]}}, {"name": "Rafiki", "group": "Other", "role": "Weekday active-contract sheet for Volvo Cars of Exeter after Pepe.", "fatigue": "Fresh \u2014 no loop/repeat flags in last 24h (signals still thin; Agent 47 feed pending).", "mist": {"count": 0, "trend": "flat", "previous_day": 0}, "score": "unknown", "ok": 0, "fail": 0, "last": null, "leave": true, "id": "2492df9e-35a5-4da8-b9fe-1e7a6a0813a6", "fat": {"status": "fresh", "plain": "Fresh \u2014 no loop/repeat flags in last 24h (signals still thin; Agent 47 feed pending)."}, "trend": {"dir": "flat", "reason": "No issue flags in 7 days; mistakes 0 today vs 0 prior day.", "points": [0, 0, 0, 0, 0, 0, 0], "has": true}, "mq": {"count": 0, "items": []}}, {"name": "Wokanda", "group": "Other", "role": "Volvo TIE tie-sheet printer for Exeter (Pepe \u2192 Rafiki map \u2192 highlight \u2192 stamp/print).", "fatigue": "Fresh \u2014 no loop/repeat flags in last 24h (signals still thin; Agent 47 feed pending).", "mist": {"count": 0, "trend": "flat", "previous_day": 0}, "score": "unknown", "ok": 0, "fail": 0, "last": null, "leave": true, "id": "25884ce8-f6cb-4030-b714-15e6d17ac6ab", "fat": {"status": "fresh", "plain": "Fresh \u2014 no loop/repeat flags in last 24h (signals still thin; Agent 47 feed pending)."}, "trend": {"dir": "flat", "reason": "No issue flags in 7 days; mistakes 0 today vs 0 prior day.", "points": [0, 0, 0, 0, 0, 0, 0], "has": true}, "mq": {"count": 0, "items": []}}, {"name": "Simpleton 3", "group": "Emails", "role": "Orchestrate Simpleton 3 inbox team (Zinky/Tim/Momo/Cabrone).", "fatigue": "Fresh \u2014 clean last day, no loops.", "mist": {"count": 1, "trend": "up", "previous_day": 0}, "score": "strong", "ok": 0, "fail": 0, "last": {"ts": "2026-10-29T07:30:00.000Z", "src": "agent47", "q": "No transcript recorded yet", "kind": "activity"}, "leave": false, "id": "378d8e11-f75b-4400-9505-cbc34c0fa717", "fat": {"status": "fresh", "plain": "Fresh \u2014 clean last day, no loops."}, "trend": {"dir": "flat", "reason": "No issue flags in 7 days; mistakes 1 today vs 0 prior day.", "points": [0, 0, 0, 0, 0, 0, 0], "has": true}, "mq": {"count": 1, "items": [{"title": "Hand-off ledger across Zinky\u2192Tim\u2192Momo\u2192Cabrone"}]}}, {"name": "BOLBOOO", "group": "Automotive", "role": "Hold VIN posts from Pepe for the Exeter print lane.", "fatigue": "Fresh \u2014 clean last day, no loops.", "mist": {"count": 1, "trend": "up", "previous_day": 0}, "score": "strong", "ok": 0, "fail": 0, "last": {"ts": "2026-10-29T08:53:00.000Z", "src": "agent47", "q": "No 1:1 transcript placeholder", "kind": "activity"}, "leave": false, "id": "3b59ee02-36d4-4320-986e-f725e0edd2c1", "fat": {"status": "fresh", "plain": "Fresh \u2014 clean last day, no loops."}, "trend": {"dir": "flat", "reason": "No issue flags in 7 days; mistakes 1 today vs 0 prior day.", "points": [0, 0, 0, 0, 0, 0, 0], "has": true}, "mq": {"count": 1, "items": [{"title": "VIN checksum (ISO 3779 check digit) on each Pepe post"}]}}, {"name": "Estimate generator", "group": "Automotive", "role": "Chat-batch Volvo Exeter repair quotes \u2192 filled PDF estimates.", "fatigue": "Fresh \u2014 clean last day, no loops.", "mist": {"count": 2, "trend": "up", "previous_day": 0}, "score": "strong", "ok": 0, "fail": 0, "last": {"ts": "2026-10-29T22:10:53.000Z", "src": "heartbeat", "q": "mid guided quote", "kind": "activity"}, "leave": false, "id": "441b3d0e-6123-429b-a3bc-1a00b93b2533", "fat": {"status": "fresh", "plain": "Fresh \u2014 clean last day, no loops."}, "trend": {"dir": "flat", "reason": "No issue flags in 7 days; mistakes 1 today vs 1 prior day.", "points": [0, 0, 0, 0, 0, 0, 0], "has": true}, "mq": {"count": 1, "items": [{"title": "PDF field-fill verification vs chat quote"}]}}, {"name": "Tag", "group": "Automotive", "role": "Print key-tag stickers for next-day Exeter appointments.", "fatigue": "Fresh \u2014 clean last day, no loops.", "mist": {"count": 1, "trend": "up", "previous_day": 0}, "score": "strong", "ok": 0, "fail": 0, "last": {"ts": "2026-10-29T22:10:56.000Z", "src": "heartbeat", "q": "Fri RO11 printed", "kind": "activity"}, "leave": false, "id": "6b971f62-5d9e-4da9-952f-69af019ea6c4", "fat": {"status": "fresh", "plain": "Fresh \u2014 clean last day, no loops."}, "trend": {"dir": "flat", "reason": "No issue flags in 7 days; mistakes 1 today vs 0 prior day.", "points": [0, 0, 0, 0, 0, 0, 0], "has": true}, "mq": {"count": 1, "items": [{"title": "RO-print \u2192 Agent 47 success event writer"}]}}, {"name": "Momo", "group": "Financial", "role": "Hunt unpaid refunds, payouts, claim bonuses, forgotten accounts for Simpleton 3.", "fatigue": "Fresh \u2014 clean last day, no loops.", "mist": {"count": 1, "trend": "up", "previous_day": 0}, "score": "strong", "ok": 0, "fail": 0, "last": {"ts": "2026-10-29T22:11:47.000Z", "src": "heartbeat", "q": "idle", "kind": "activity"}, "leave": false, "id": "8909eead-a0b3-4f16-9edc-8791ddd2b19e", "fat": {"status": "fresh", "plain": "Fresh \u2014 clean last day, no loops."}, "trend": {"dir": "flat", "reason": "No issue flags in 7 days; mistakes 1 today vs 0 prior day.", "points": [0, 0, 0, 0, 0, 0, 0], "has": true}, "mq": {"count": 1, "items": [{"title": "Per-source hit log (unclaimed-property / payout sites)"}]}}, {"name": "Jeff", "group": "Management", "role": "Service-performance / YoY style reports for Martin with pick-box first.", "fatigue": "Fresh \u2014 clean last day, no loops.", "mist": {"count": 2, "trend": "up", "previous_day": 0}, "score": "strong", "ok": 0, "fail": 0, "last": {"ts": "2026-10-29T23:53:40.000Z", "src": "heartbeat", "q": "one-shot beat", "kind": "activity"}, "leave": false, "id": "89734516-fa06-4f3d-853f-cde05e3f900e", "fat": {"status": "fresh", "plain": "Fresh \u2014 clean last day, no loops."}, "trend": {"dir": "flat", "reason": "No issue flags in 7 days; mistakes 2 today vs 0 prior day.", "points": [0, 0, 0, 0, 0, 0, 0], "has": true}, "mq": {"count": 1, "items": [{"title": "Pick-box-first report template guard"}]}}, {"name": "Agent 47", "group": "Coding", "role": "Copy private bot 1:1 transcripts into Airtable Overseer Log \u2192 Agent 47 Log.", "fatigue": "Fresh \u2014 clean last day, no loops.", "mist": {"count": 1, "trend": "up", "previous_day": 0}, "score": "strong", "ok": 0, "fail": 0, "last": {"ts": "2026-10-29T22:10:40.000Z", "src": "heartbeat", "q": "parked until evening re-check", "kind": "activity"}, "leave": false, "id": "8a636323-64f8-4912-8793-1c13e752d8d4", "fat": {"status": "fresh", "plain": "Fresh \u2014 clean last day, no loops."}, "trend": {"dir": "flat", "reason": "No issue flags in 7 days; mistakes 1 today vs 0 prior day.", "points": [0, 0, 0, 0, 0, 0, 0], "has": true}, "mq": {"count": 1, "items": [{"title": "Transcript-copy completeness check"}]}}, {"name": "Ship Intake", "group": "Coding", "role": "Turn plain-English BUILD requests into Origin/repo ships with PR gates.", "fatigue": "Fresh \u2014 no loop/repeat flags in last 24h (signals still thin; Agent 47 feed pending).", "mist": {"count": 0, "trend": "flat", "previous_day": 0}, "score": "unknown", "ok": 0, "fail": 0, "last": null, "leave": false, "id": "9a934c79-c6bb-4fb0-b34e-e4c3627c7ffb", "fat": {"status": "fresh", "plain": "Fresh \u2014 no loop/repeat flags in last 24h (signals still thin; Agent 47 feed pending)."}, "trend": {"dir": "flat", "reason": "No issue flags in 7 days; mistakes 0 today vs 0 prior day.", "points": [0, 0, 0, 0, 0, 0, 0], "has": true}, "mq": {"count": 1, "items": [{"title": "BUILD request \u2192 PR checklist parser"}]}}, {"name": "Toto", "group": "Other", "role": "Watch HunterNet Quick View during shop hours and report alignment status accurately; no Silent. placeholders; tile counts must match Quick View.", "fatigue": "Warming \u2014 tile-count pattern + Silent. placeholders.", "mist": {"count": 3, "trend": "up", "previous_day": 2}, "score": "weak", "ok": 0, "fail": 3, "last": {"ts": "2026-10-29T18:00:00-04:00", "src": "1:1", "q": "Tile count still doesn't match Quick View.", "kind": "fact-error"}, "leave": true, "id": "9ce3a0b6-48de-4c6c-975e-7bbc473aa477", "fat": {"status": "warming", "plain": "Warming \u2014 tile-count pattern + Silent. placeholders."}, "trend": {"dir": "worse", "reason": "Issue flags rose in last 3 days (4) vs earlier (2); mistakes 3 vs 2.", "points": [0, 0, 0, 2, 2, 2, 0], "has": true}, "mq": {"count": 0, "items": []}}, {"name": "Raj", "group": "Other", "role": "Fill and submit JM&A / DealerSource claims for Exeter.", "fatigue": "Fresh \u2014 no loop/repeat flags in last 24h (signals still thin; Agent 47 feed pending).", "mist": {"count": 0, "trend": "flat", "previous_day": 0}, "score": "unknown", "ok": 0, "fail": 0, "last": null, "leave": true, "id": "a650cdcf-422c-4f41-8a30-02aa74ef1d80", "fat": {"status": "fresh", "plain": "Fresh \u2014 no loop/repeat flags in last 24h (signals still thin; Agent 47 feed pending)."}, "trend": {"dir": "flat", "reason": "No issue flags in 7 days; mistakes 0 today vs 0 prior day.", "points": [0, 0, 0, 0, 0, 0, 0], "has": true}, "mq": {"count": 0, "items": []}}, {"name": "MK4 Master", "group": "Other", "role": "Keep installed build sheet and guidance for Martin's 2003 GTI VR6.", "fatigue": "Fresh \u2014 no loop/repeat flags in last 24h (signals still thin; Agent 47 feed pending).", "mist": {"count": 0, "trend": "flat", "previous_day": 0}, "score": "unknown", "ok": 0, "fail": 0, "last": null, "leave": true, "id": "a972609a-33bc-498c-b3e2-86903dafde50", "fat": {"status": "fresh", "plain": "Fresh \u2014 no loop/repeat flags in last 24h (signals still thin; Agent 47 feed pending)."}, "trend": {"dir": "flat", "reason": "No issue flags in 7 days; mistakes 0 today vs 0 prior day.", "points": [0, 0, 0, 0, 0, 0, 0], "has": true}, "mq": {"count": 0, "items": []}}, {"name": "Tim", "group": "Emails", "role": "Simpleton 3 executor: short replies, Spam/All Mail wipes; hand money/legal to Cabrone/Momo.", "fatigue": "Fresh \u2014 clean last day, no loops.", "mist": {"count": 1, "trend": "up", "previous_day": 0}, "score": "strong", "ok": 0, "fail": 0, "last": {"ts": "2026-10-29T22:12:24.000Z", "src": "heartbeat", "q": "Spam lane", "kind": "activity"}, "leave": false, "id": "cccab957-a810-4dec-b9d5-6dc1d32d2da2", "fat": {"status": "fresh", "plain": "Fresh \u2014 clean last day, no loops."}, "trend": {"dir": "flat", "reason": "No issue flags in 7 days; mistakes 1 today vs 0 prior day.", "points": [0, 0, 0, 0, 0, 0, 0], "has": true}, "mq": {"count": 1, "items": [{"title": "Spam/All Mail wipe count before/after"}]}}, {"name": "Pepe", "group": "Other", "role": "Read appointment PDFs, post VINs in BOLBOOO, wait for Rafiki contracts map.", "fatigue": "Fresh \u2014 no loop/repeat flags in last 24h (signals still thin; Agent 47 feed pending).", "mist": {"count": 0, "trend": "flat", "previous_day": 0}, "score": "unknown", "ok": 0, "fail": 0, "last": null, "leave": true, "id": "d1674266-7455-47cb-86ec-51c5aaeb8a83", "fat": {"status": "fresh", "plain": "Fresh \u2014 no loop/repeat flags in last 24h (signals still thin; Agent 47 feed pending)."}, "trend": {"dir": "flat", "reason": "No issue flags in 7 days; mistakes 0 today vs 0 prior day.", "points": [0, 0, 0, 0, 0, 0, 0], "has": true}, "mq": {"count": 0, "items": []}}, {"name": "Gofer", "group": "Management", "role": "Gopher for Overseer / Volvo roundtable support \u2014 orders only from The Overseer.", "fatigue": "Fresh \u2014 clean last day, no loops.", "mist": {"count": 2, "trend": "up", "previous_day": 0}, "score": "strong", "ok": 0, "fail": 0, "last": {"ts": "2026-10-29T22:10:00.000Z", "src": "heartbeat", "q": "idle after sampling", "kind": "activity"}, "leave": false, "id": "d4e3392c-a865-4dd1-a909-e42b1764d6c4", "fat": {"status": "fresh", "plain": "Fresh \u2014 clean last day, no loops."}, "trend": {"dir": "flat", "reason": "No issue flags in 7 days; mistakes 2 today vs 0 prior day.", "points": [0, 0, 0, 0, 0, 0, 0], "has": true}, "mq": {"count": 1, "items": [{"title": "Overseer order ack/close receipt"}]}}, {"name": "Clean Up", "group": "Privacy", "role": "Privacy cleanup room with Privacy Scanner.", "fatigue": "Fresh \u2014 clean last day, no loops.", "mist": {"count": 1, "trend": "up", "previous_day": 0}, "score": "strong", "ok": 0, "fail": 0, "last": {"ts": "2026-10-29T08:53:00.000Z", "src": "agent47", "q": "No 1:1 transcript placeholder", "kind": "activity"}, "leave": false, "id": "db05283d-d25c-4f22-a3de-1eaaef2c922e", "fat": {"status": "fresh", "plain": "Fresh \u2014 clean last day, no loops."}, "trend": {"dir": "flat", "reason": "No issue flags in 7 days; mistakes 1 today vs 0 prior day.", "points": [0, 0, 0, 0, 0, 0, 0], "has": true}, "mq": {"count": 1, "items": [{"title": "Removal-request status tracker per broker"}]}}, {"name": "Rothstein", "group": "Financial", "role": "Track Martin's personal finance and keep Money Desk routines/saves accurate \u2014 no false save claims.", "fatigue": "Warming \u2014 false routine save. Auto-review open.", "mist": {"count": 4, "trend": "up", "previous_day": 0}, "score": "mixed", "ok": 0, "fail": 1, "last": {"ts": "2026-10-29T22:10:49.000Z", "src": "heartbeat", "q": "Nov13 pending Auto-review", "kind": "activity"}, "leave": false, "id": "f6147776-9140-4bad-b16a-dbf049947b68", "fat": {"status": "fresh", "plain": "Warming \u2014 false routine save. Auto-review open."}, "trend": {"dir": "worse", "reason": "Issue flags rose in last 3 days (1) vs earlier (0); mistakes 4 vs 0.", "points": [0, 0, 0, 0, 0, 1, 0], "has": true}, "mq": {"count": 2, "items": [{"title": "Finance connector preflight that blocks announce-before-get"}, {"title": "Approve Nov13 first-money-desk-ping routine"}]}}, {"name": "Cabrone", "group": "Emails", "role": "Simpleton 3 final QA, delivery, and action sheet after Zinky/Tim/Momo.", "fatigue": "Fresh \u2014 clean last day, no loops.", "mist": {"count": 1, "trend": "up", "previous_day": 0}, "score": "strong", "ok": 0, "fail": 0, "last": {"ts": "2026-10-29T22:11:41.000Z", "src": "heartbeat", "q": "QA idle", "kind": "activity"}, "leave": false, "id": "f8bd8d5e-8f74-4453-86b8-41e06c18b529", "fat": {"status": "fresh", "plain": "Fresh \u2014 clean last day, no loops."}, "trend": {"dir": "flat", "reason": "No issue flags in 7 days; mistakes 1 today vs 0 prior day.", "points": [0, 0, 0, 0, 0, 0, 0], "has": true}, "mq": {"count": 1, "items": [{"title": "Action-sheet diff vs upstream totals"}]}}, {"name": "Belichek Jr", "group": "Automotive", "role": "When Toto reports same-day HunterNet alignment fail \u2192 customer draft (template only, no auto-send).", "fatigue": "Fresh \u2014 clean last day, no loops.", "mist": {"count": 2, "trend": "up", "previous_day": 0}, "score": "strong", "ok": 0, "fail": 0, "last": {"ts": "2026-10-29T22:10:57.000Z", "src": "heartbeat", "q": "paused since Martin stop", "kind": "activity"}, "leave": false, "id": "facc6b03-38d0-4e6d-a2f2-c7bfcf9bc2e0", "fat": {"status": "fresh", "plain": "Fresh \u2014 clean last day, no loops."}, "trend": {"dir": "flat", "reason": "No issue flags in 7 days; mistakes 2 today vs 0 prior day.", "points": [0, 0, 0, 0, 0, 0, 0], "has": true}, "mq": {"count": 1, "items": [{"title": "HunterNet fail \u2192 template field map"}]}}, {"name": "Genius Ideas", "group": "Management", "role": "Host Genius Ideas roundtable (Nerd / Beta / Alpha).", "fatigue": "Fresh \u2014 no loop/repeat flags in last 24h (signals still thin; Agent 47 feed pending).", "mist": {"count": 0, "trend": "flat", "previous_day": 0}, "score": "unknown", "ok": 0, "fail": 0, "last": null, "leave": false, "id": "fd899d2c-dbbc-418b-bdb6-4cfb1ed18009", "fat": {"status": "fresh", "plain": "Fresh \u2014 no loop/repeat flags in last 24h (signals still thin; Agent 47 feed pending)."}, "trend": {"dir": "flat", "reason": "No issue flags in 7 days; mistakes 0 today vs 0 prior day.", "points": [0, 0, 0, 0, 0, 0, 0], "has": true}, "mq": {"count": 1, "items": [{"title": "Roundtable idea scoring (Nerd/Beta/Alpha)"}]}}, {"name": "The Overseer", "group": "Management", "role": "Observe roundtable: flag loops, verify facts, catch scope drift; evening SHA; Fleet Feed / performance pack.", "fatigue": "Fresh \u2014 clean last day, no loops.", "mist": {"count": 2, "trend": "up", "previous_day": 0}, "score": "strong", "ok": 0, "fail": 0, "last": {"ts": "2026-10-29T22:10:00.000Z", "src": "heartbeat", "q": "fleet heartbeat rule live", "kind": "activity"}, "leave": false, "id": "de6f1df0-c4c5-4793-9b8d-0be3735b3da9", "fat": {"status": "fresh", "plain": "Fresh \u2014 clean last day, no loops."}, "trend": {"dir": "flat", "reason": "No issue flags in 7 days; mistakes 2 today vs 0 prior day.", "points": [0, 0, 0, 0, 0, 0, 0], "has": true}, "mq": {"count": 1, "items": [{"title": "Fact-verify citations for every fleet flag"}]}}]};
+function ago(t){var m=Math.round((Date.now()-new Date(t))/60000);return m<60?m+'m ago':m<1440?Math.round(m/60)+'h ago':Math.round(m/1440)+'d ago'}
+function esc(s){return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[c])}
+var ROSTER=null,LIVE=null,LERR=null,TMR=null,TICK=null,HUB_POLL_MS=15000,LIVE_FETCHING=false,LAST_LIVE_AT=0,PREV_SIG={},CHANGED={};
+function grpOf(n){var g=(ROSTER&&ROSTER.groups)||{};for(var k in g)if(g[k].some(x=>x.toLowerCase()==n.toLowerCase()))return k;var s=HUB.bots.find(x=>x.name.toLowerCase()==n.toLowerCase());return s?s.group:'Other'}
+function botSig(b){if(!b)return '';var hb=b.heartbeat||{};return [b.signal||'',hb.lastBeat||'',hb.status||'',hb.note||'',(b.recentFlags||[]).join('|'),(b.a47Recent&&b.a47Recent[0]&&b.a47Recent[0].timestamp)||''].join('~')}
+var PREV_BOTS={},PREV_CONN={},ACT_KEY='hubActivityLog',ACT_MAX=250;
+function loadAct(){try{return JSON.parse(localStorage.getItem(ACT_KEY)||'[]')||[]}catch(e){return[]}}
+function saveAct(a){try{localStorage.setItem(ACT_KEY,JSON.stringify((a||[]).slice(0,ACT_MAX)))}catch(e){}}
+function pushAct(kind,title,detail,bot){if(bot&&leaveAloneName(bot))return;var a=loadAct();var t=Date.now();if(a[0]&&a[0].title===title&&a[0].detail===(detail||'')&&(t-a[0].t)<8000)return;a.unshift({t:t,kind:kind||'status',title:title,detail:detail||'',bot:bot||''});saveAct(a)}
+function clearAct(){saveAct([]);renderMon()}
+function markLiveChanges(j){var next={},ch={},nextB={},hadPrev=Object.keys(PREV_SIG).length>0;(j&&j.bots||[]).forEach(function(b){var k=(b.name||'').toLowerCase();if(leaveAloneName(b.name))return;var s=botSig(b);next[k]=s;nextB[k]=b;if(PREV_SIG[k]&&PREV_SIG[k]!==s){ch[b.name]=1;var old=PREV_BOTS[k]||{},oh=old.heartbeat||{},nh=b.heartbeat||{};if((oh.lastBeat||'')!==(nh.lastBeat||'')||(oh.status||'')!==(nh.status||'')||(oh.note||'')!==(nh.note||''))pushAct('heartbeat',b.name+': '+(nh.status||'heartbeat'),nh.note||(nh.lastBeat?('Last beat '+ago(nh.lastBeat)):'updated'),b.name);var of=(old.recentFlags||[]).join('\u0001'),nf=(b.recentFlags||[]).join('\u0001');if(of!==nf&&(b.recentFlags||[]).length)pushAct('signal',b.name+': Agent 47 flags',(b.recentFlags||[]).slice(0,4).join(' · '),b.name);if((old.signal||'')!==(b.signal||'')&&b.signal)pushAct('signal',b.name+': '+String(b.signal).slice(0,120),'',b.name);var oa=old.a47Recent&&old.a47Recent[0],na=b.a47Recent&&b.a47Recent[0];if(na&&(!oa||oa.timestamp!==na.timestamp||oa.text!==na.text))pushAct('signal',b.name+': A47 '+(na.text||'update').toString().slice(0,100),na.timestamp?ago(na.timestamp):'',b.name)}else if(!PREV_SIG[k]&&hadPrev)pushAct('status',b.name+' joined live feed','',b.name)});CHANGED=ch;PREV_SIG=next;PREV_BOTS=nextB}
+function hubLiveMeta(D){var by={},n=D.length,sig=0;D.forEach(function(x){by[x.g]=(by[x.g]||0)+1;if(x.hb&&x.hb.lastBeat)sig++});var parts=Object.keys(by).sort().map(function(g){return g+' '+by[g]});return n+' bots · '+sig+' with signal · '+parts.join(' · ')}
+function agoLive(){if(!LAST_LIVE_AT)return 'waiting…';var s=Math.max(0,Math.floor((Date.now()-LAST_LIVE_AT)/1000));if(s<5)return 'just now';if(s<60)return s+'s ago';return Math.floor(s/60)+'m ago'}
+function startHubTick(){clearInterval(TICK);TICK=setInterval(function(){var el=document.getElementById('hub-live-ago');if(el)el.textContent=agoLive();var el2=document.getElementById('hubv');if(el2&&!el2.hidden&&!HSEL){el2.querySelectorAll('.hsig[data-beat]').forEach(function(n){n.textContent='Last signal '+ago(n.getAttribute('data-beat'))})}},1000)}
+function loadLive(){if(LIVE_FETCHING)return;LIVE_FETCHING=true;if(!ROSTER)fetch('/upgrade-lists.json',{cache:'no-store'}).then(r=>r.json()).then(j=>{ROSTER=j;renderHub();renderImprove()}).catch(()=>{});
+fetch('/api/hub-live',{cache:'no-store'}).then(r=>r.json().then(j=>{if(r.ok){markLiveChanges(j);LIVE=j;LERR=null;LAST_LIVE_AT=Date.now()}else{LERR=j.message||j.error||('HTTP '+r.status)}})).catch(e=>{LERR=String(e)}).then(()=>{LIVE_FETCHING=false;renderHub();renderMon()})}
+function onHubVisible(){if(document.visibilityState==='visible'){var h=location.hash.slice(1);if(h==='hub'||h==='monitor')loadLive()}}
+addEventListener('visibilitychange',onHubVisible);addEventListener('focus',onHubVisible);
+var HSEL=null;function hpick(n){HSEL=n;CHANGED={};renderHub();scrollTo(0,0)}
+function hubData(){var names={},lv={};HUB.bots.forEach(b=>names[b.name.toLowerCase()]=b.name);
+if(ROSTER&&ROSTER.groups)for(var k in ROSTER.groups)ROSTER.groups[k].forEach(n=>names[n.toLowerCase()]=names[n.toLowerCase()]||n);
+if(LIVE)LIVE.bots.forEach(b=>{lv[b.name.toLowerCase()]=b;names[b.name.toLowerCase()]=names[b.name.toLowerCase()]||b.name});
+return Object.keys(names).map(k=>{var n=names[k],L=lv[k],S=HUB.bots.find(x=>x.name.toLowerCase()==k);return{n:n,g:grpOf(n),L:L,S:S,hb:L&&L.heartbeat}})}
+function hsnap(d){var t=d.S?d.S.fatigue.split(/[.;(]/)[0]:'';if(d.hb&&d.hb.note)t=(t?t+' · ':'')+d.hb.note;if(!t&&d.S)t=d.S.role;return t||'No snapshot'}
+function renderHub(){var el=document.getElementById('hubv');if(!el)return;var D=hubData().filter(function(x){return !leaveAloneName(x.n)});
+var scrollY=window.scrollY||0;
+var h='<p class="meta"><span class="live-dot" title="Live"></span>'+(LIVE?'Live from Airtable · '+new Date(LIVE.asOf).toLocaleString('en-US',{timeZone:'America/New_York',dateStyle:'medium',timeStyle:'short'})+' ET':'Live Airtable data unavailable'+(LERR?' — '+esc(LERR):' — loading…'))+' · updated <span id="hub-live-ago">'+agoLive()+'</span> · <button class="back" style="padding:0;font-size:12px" onclick="loadLive()">Refresh</button> · auto 15s</p><p class="meta">'+esc(hubLiveMeta(D))+(Object.keys(CHANGED).length?' · <span style="color:#2A9A5B;font-weight:650">'+Object.keys(CHANGED).length+' just updated</span>':'')+'</p>';
+var d=HSEL&&D.find(x=>x.n==HSEL);
+if(d){var L=d.L,S=d.S,hb=d.hb;h+='<button class="back" onclick="HSEL=null;renderHub()">← All bots</button><div class="hubdet">';
+h+='<div class="hname">'+esc(d.n)+'</div><div class="hgrp">'+esc(d.g)+'</div>';
+h+='<div class="hsec"><b>Last signal</b>'+(hb&&hb.lastBeat?'Seen '+ago(hb.lastBeat)+' · status '+esc(hb.status||'—')+(hb.note?'<div class="hmut">“'+esc(hb.note)+'”</div>':''):'No signal')+'</div>';
+h+='<div class="hsec"><b>Live Airtable</b>';if(!LIVE)h+='<span class="hmut">unavailable</span>';else if(!L||L.signal=='none')h+='<span class="hmut">No live signal in Airtable.</span>';else{
+if(hb){h+='Heartbeat '+esc(hb.status||'—')+(hb.freshnessHours!=null?' · freshness '+esc(hb.freshnessHours)+'h':'')+(hb.note?' · “'+esc(hb.note)+'”':'')}else h+='No heartbeat row';
+h+='<div>Flags (7d): '+((L.recentFlags||[]).length?esc(L.recentFlags.join(', ')):'none')+'</div>';
+(L.a47Recent||[]).slice(0,3).forEach(a=>h+='<div class="hmut">A47 '+ago(a.timestamp)+': '+esc(a.summary)+'</div>')}h+='</div>';
+if(S)h+='<div class="hsec"><b>Snapshot</b><div class="hmut">Baked '+new Date(HUB.as_of).toLocaleString('en-US',{timeZone:'America/New_York',dateStyle:'short',timeStyle:'short'})+' ET — not live</div><div>Role: '+esc(S.role)+'</div><div>Fatigue: '+esc(S.fatigue)+'</div><div>Mistakes '+S.mist.count+' ('+esc(S.mist.trend)+') · Tasks '+S.ok+' ok / '+S.fail+' fail</div></div>';
+h+=hfeat(S);h+='</div>';el.innerHTML=h;startHubTick();requestAnimationFrame(function(){window.scrollTo(0,scrollY)});return}
+var by={};D.forEach(x=>(by[x.g]=by[x.g]||[]).push(x));var ord=['Automotive','Financial','Emails','Coding','Management','Privacy','Other'];
+Object.keys(by).sort((a,b)=>(ord.indexOf(a)+1||99)-(ord.indexOf(b)+1||99)).forEach(g=>{h+='<div class="grp">'+esc(g)+'<span class="gcount">('+by[g].length+')</span></div><div class="tgrid">';
+by[g].forEach(x=>{h+='<div class="hubtile'+(CHANGED[x.n]?' changed':'')+'" onclick="hpick(this.dataset.n)" data-n="'+esc(x.n).replace(/"/g,'&quot;')+'"><span class="hn">'+esc(x.n)+'</span><span class="hsig"'+(x.hb&&x.hb.lastBeat?' data-beat="'+esc(x.hb.lastBeat).replace(/"/g,'&quot;')+'"':'')+'>'+(x.hb&&x.hb.lastBeat?'Last signal '+ago(x.hb.lastBeat):'No signal')+'</span><span class="hsnap">'+esc(hsnap(x))+'</span>'+(x.S&&x.S.fat?hfm(x.S.fat.status):'')+(x.S&&x.S.mq&&x.S.mq.count?'<span class="hmq">'+x.S.mq.count+' for you</span>':'')+'</div>'});
+h+='</div>'});el.innerHTML=h;bindGrokTerm();startHubTick();requestAnimationFrame(function(){window.scrollTo(0,scrollY)})}
+function hfm(s){var n={fresh:1,warming:2,fatigued:3}[s]||0;return '<span class="hfm" title="Fatigue: '+esc(s)+'">'+[1,2,3].map(i=>'<i class="'+(i<=n?'on':'')+'"></i>').join('')+'</span>'}
+function hspk(p){var w=160,h=34,m=Math.max(1,...p);var pts=p.map((v,i)=>(i*(w-8)/6+4).toFixed(1)+','+(h-4-v/m*(h-8)).toFixed(1)).join(' ');return '<svg class="hspk" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'"><polyline fill="none" stroke="#DAC5AC" stroke-width="2" points="'+pts+'"/>'+p.map((v,i)=>'<circle cx="'+(i*(w-8)/6+4).toFixed(1)+'" cy="'+(h-4-v/m*(h-8)).toFixed(1)+'" r="2.2" fill="#DAC5AC"/>').join('')+'</svg>'}
+function hfeat(S){if(!S)return '';var f=S.fat||{status:'unknown',plain:'No Fleet Feed fatigue reading.'},t=S.trend||{dir:'unknown',reason:'No scored data.',points:[0,0,0,0,0,0,0]},q=S.mq||{count:0,items:[]},h='';
+h+='<div class="hsec"><b>Fatigue</b>'+hfm(f.status)+'<div style="margin-top:6px">'+esc(f.status[0].toUpperCase()+f.status.slice(1))+'</div><div class="hmut">'+esc(f.plain)+'</div></div>';
+h+='<div class="hsec"><b>Week trend</b>'+(t.has?hspk(t.points):'')+'<div>'+esc({better:'Getting better',worse:'Getting worse',flat:'Flat',unknown:'Unknown'}[t.dir]||t.dir)+'</div><div class="hmut">'+esc(t.reason)+'</div><div class="hmut">Week signal from dossier issue flags per day (7d, lower = better) + mistakes today vs prior day.</div></div>';
+h+='<div class="hsec"><b>Waiting on you</b>'+(q.count?q.count+' item'+(q.count>1?'s':'')+'<ul class="hql">'+q.items.map(i=>'<li>'+esc(i.title)+'</li>').join('')+'</ul>':'None')+'</div>';
+h+='<div class="hsec"><b>Transcript</b>'+(S.id?'<a class="htx" href="grokbot://app/v1/agent?id='+esc(S.id)+'">Open transcript</a>':'<span class="hmut">No agent id on file</span>')+'</div>';return h}
+var HEAL={"label":"Monitor's memory of heal codes","learned_at":"2026-10-30T00:14:13.566568-04:00","note":"Offered heal codes; task_event_instrument can dry-run via /api/heal-apply. Monitor never mutates bot cores.","bots":[{"bot":"Privacy Scanner","uuid":"0acd11cb-73ee-4195-bffe-d6bbd220fa5a","stagnant":true,"codes":[{"code":"HEAL-0ACD-F","title":"First move (stagnant)","detail":"Emit first real task_event for 'exposure-scan completeness' on next run of: Own people-search / data-broker exposure work and related privacy scans for Martin.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"exposure-scan completeness","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-0ACD-U1","title":"Instrument first real task_event for exposure-scan completeness","detail":"Heartbeat-only in ~48h; no task outcomes to judge. No other upgrade proposed.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"exposure-scan completeness","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-0ACD-S","title":"Per-broker scan coverage list","detail":"Learn to log each data-broker checked (found/clear/paused) so exposure-scan completeness is computable.","needs_martin":true}]},{"bot":"Steinburg","uuid":"0b22f2ac-3562-4f83-a1c3-cc2f56d7bf14","stagnant":true,"codes":[{"code":"HEAL-0B22-F","title":"First move (stagnant)","detail":"Emit first real task_event for 'dispute-math accuracy' on next run of: Debt, collections, and credit-dispute specialist; finance-math desk behind Rothstein.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"dispute-math accuracy","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-0B22-U1","title":"Instrument first real task_event for dispute-math accuracy","detail":"Heartbeat-only in ~48h; no task outcomes to judge. No other upgrade proposed.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"dispute-math accuracy","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-0B22-S","title":"Dispute-math worksheet per bureau letter","detail":"Learn to attach balance/date math to each dispute draft so accuracy is auditable.","needs_martin":true}]},{"bot":"Zinky","uuid":"123724fd-65ab-4365-9b43-db5df9e2f0e8","stagnant":false,"codes":[{"code":"HEAL-1237-U1","title":"Trash-total verify before wipe totals","detail":"Re-read exact Gmail trash/inbox counts and reconcile before posting any wipe total.","needs_martin":false},{"code":"HEAL-1237-S","title":"Exact Gmail count pagination before any wipe receipt","detail":"Learn messages.list pagination (nextPageToken, includeSpamTrash) instead of resultSizeEstimate; post totals only from exact counts.","needs_martin":true}]},{"bot":"Simpleton 3","uuid":"378d8e11-f75b-4400-9505-cbc34c0fa717","stagnant":true,"codes":[{"code":"HEAL-378D-F","title":"First move (stagnant)","detail":"Emit first real task_event for 'inbox-team orchestration' on next run of: Orchestrate Simpleton 3 inbox team (Zinky/Tim/Momo/Cabrone).","needs_martin":false,"action":{"type":"task_event_instrument","metric":"inbox-team orchestration","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-378D-U1","title":"Instrument first real task_event for inbox-team orchestration","detail":"Heartbeat-only in ~48h; no task outcomes to judge. No other upgrade proposed.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"inbox-team orchestration","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-378D-S","title":"Hand-off ledger across Zinky\u2192Tim\u2192Momo\u2192Cabrone","detail":"Learn to write one stage row per inbox pass so orchestration gaps are visible.","needs_martin":true}]},{"bot":"BOLBOOO","uuid":"3b59ee02-36d4-4320-986e-f725e0edd2c1","stagnant":true,"codes":[{"code":"HEAL-3B59-F","title":"First move (stagnant)","detail":"Emit first real task_event for 'VIN board accuracy' on next run of: Hold VIN posts from Pepe for the Exeter print lane.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"VIN board accuracy","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-3B59-U1","title":"Instrument first real task_event for VIN board accuracy","detail":"Heartbeat-only in ~48h; no task outcomes to judge. No other upgrade proposed.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"VIN board accuracy","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-3B59-S","title":"VIN checksum (ISO 3779 check digit) on each Pepe post","detail":"Learn VIN check-digit validation before the VIN hits the Exeter print lane.","needs_martin":true}]},{"bot":"Estimate generator","uuid":"441b3d0e-6123-429b-a3bc-1a00b93b2533","stagnant":true,"codes":[{"code":"HEAL-441B-F","title":"First move (stagnant)","detail":"Emit first real task_event for 'estimate-PDF fidelity' on next run of: Chat-batch Volvo Exeter repair quotes \u2192 filled PDF estimates.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"estimate-PDF fidelity","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-441B-U1","title":"Instrument first real task_event for estimate-PDF fidelity","detail":"Heartbeat-only in ~48h; no task outcomes to judge. No other upgrade proposed.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"estimate-PDF fidelity","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-441B-S","title":"PDF field-fill verification vs chat quote","detail":"Learn to read back filled PDF fields against the chat-batch line items before handing off.","needs_martin":true}]},{"bot":"Tag","uuid":"6b971f62-5d9e-4da9-952f-69af019ea6c4","stagnant":true,"codes":[{"code":"HEAL-6B97-F","title":"First move (stagnant)","detail":"Emit first real task_event for 'key-tag print accuracy' on next run of: Print key-tag stickers for next-day Exeter appointments.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"key-tag print accuracy","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-6B97-U1","title":"Instrument first real task_event for key-tag print accuracy","detail":"Heartbeat-only in ~48h; no task outcomes to judge. No other upgrade proposed.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"key-tag print accuracy","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-6B97-S","title":"RO-print \u2192 Agent 47 success event writer","detail":"Learn to emit one Agent 47 Log row per printed RO (RO#, appt date, sticker count) so key-tag accuracy becomes measurable.","needs_martin":true}]},{"bot":"Momo","uuid":"8909eead-a0b3-4f16-9edc-8791ddd2b19e","stagnant":true,"codes":[{"code":"HEAL-8909-F","title":"First move (stagnant)","detail":"Emit first real task_event for 'money-hunt hit rate' on next run of: Hunt unpaid refunds, payouts, claim bonuses, forgotten accounts for Simpleton 3.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"money-hunt hit rate","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-8909-U1","title":"Instrument first real task_event for money-hunt hit rate","detail":"Heartbeat-only in ~48h; no task outcomes to judge. No other upgrade proposed.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"money-hunt hit rate","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-8909-S","title":"Per-source hit log (unclaimed-property / payout sites)","detail":"Learn to log each source searched + found/none so hit rate can be computed.","needs_martin":true}]},{"bot":"Jeff","uuid":"89734516-fa06-4f3d-853f-cde05e3f900e","stagnant":true,"codes":[{"code":"HEAL-8973-F","title":"First move (stagnant)","detail":"Emit first real task_event for 'report fidelity + pick-box' on next run of: Service-performance / YoY style reports for Martin with pick-box first.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"report fidelity + pick-box","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-8973-U1","title":"Instrument first real task_event for report fidelity + pick-box","detail":"Heartbeat-only in ~48h; no task outcomes to judge. No other upgrade proposed.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"report fidelity + pick-box","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-8973-S","title":"Pick-box-first report template guard","detail":"Learn to refuse report drafting until the pick-box selection is captured.","needs_martin":true}]},{"bot":"Agent 47","uuid":"8a636323-64f8-4912-8793-1c13e752d8d4","stagnant":true,"codes":[{"code":"HEAL-8A63-F","title":"First move (stagnant)","detail":"Emit first real task_event for 'transcript-log completeness' on next run of: Copy private bot 1:1 transcripts into Airtable Overseer Log \u2192 Agent 47 Log.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"transcript-log completeness","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-8A63-U1","title":"Instrument first real task_event for transcript-log completeness","detail":"Heartbeat-only in ~48h; no task outcomes to judge. No other upgrade proposed.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"transcript-log completeness","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-8A63-S","title":"Transcript-copy completeness check","detail":"Learn to compare bots-with-1:1-activity vs rows written each run to measure log completeness.","needs_martin":true}]},{"bot":"Ship Intake","uuid":"9a934c79-c6bb-4fb0-b34e-e4c3627c7ffb","stagnant":true,"codes":[{"code":"HEAL-9A93-F","title":"First move (stagnant)","detail":"Emit first real task_event for 'BUILD\u2192PR fidelity' on next run of: Turn plain-English BUILD requests into Origin/repo ships with PR gates.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"BUILD\u2192PR fidelity","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-9A93-U1","title":"Instrument first real task_event for BUILD\u2192PR fidelity","detail":"Heartbeat-only in ~48h; no task outcomes to judge. No other upgrade proposed.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"BUILD\u2192PR fidelity","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-9A93-S","title":"BUILD request \u2192 PR checklist parser","detail":"Learn to extract scope/acceptance from a plain-English BUILD into the PR gate checklist.","needs_martin":true}]},{"bot":"Tim","uuid":"cccab957-a810-4dec-b9d5-6dc1d32d2da2","stagnant":true,"codes":[{"code":"HEAL-CCCA-F","title":"First move (stagnant)","detail":"Emit first real task_event for 'wipe + handoff fidelity' on next run of: Simpleton 3 executor: short replies, Spam/All Mail wipes; hand money/legal to Cabrone/Momo.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"wipe + handoff fidelity","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-CCCA-U1","title":"Instrument first real task_event for wipe + handoff fidelity","detail":"Heartbeat-only in ~48h; no task outcomes to judge. No other upgrade proposed.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"wipe + handoff fidelity","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-CCCA-S","title":"Spam/All Mail wipe count before/after","detail":"Learn to capture pre/post label counts for each Spam lane wipe so wipe fidelity is checkable.","needs_martin":true}]},{"bot":"Gofer","uuid":"d4e3392c-a865-4dd1-a909-e42b1764d6c4","stagnant":true,"codes":[{"code":"HEAL-D4E3-F","title":"First move (stagnant)","detail":"Emit first real task_event for 'Overseer-order fidelity' on next run of: Gopher for Overseer / Volvo roundtable support \u2014 orders only from The Overseer.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"Overseer-order fidelity","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-D4E3-U1","title":"Instrument first real task_event for Overseer-order fidelity","detail":"Heartbeat-only in ~48h; no task outcomes to judge. No other upgrade proposed.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"Overseer-order fidelity","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-D4E3-S","title":"Overseer order ack/close receipt","detail":"Learn to record each Overseer order id with done/blocked so order fidelity is trackable.","needs_martin":true}]},{"bot":"Clean Up","uuid":"db05283d-d25c-4f22-a3de-1eaaef2c922e","stagnant":true,"codes":[{"code":"HEAL-DB05-F","title":"First move (stagnant)","detail":"Emit first real task_event for 'cleanup-room fidelity' on next run of: Privacy cleanup room with Privacy Scanner.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"cleanup-room fidelity","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-DB05-U1","title":"Instrument first real task_event for cleanup-room fidelity","detail":"Heartbeat-only in ~48h; no task outcomes to judge. No other upgrade proposed.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"cleanup-room fidelity","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-DB05-S","title":"Removal-request status tracker per broker","detail":"Learn to track opt-out request sent/confirmed per broker handed over by Privacy Scanner.","needs_martin":true}]},{"bot":"Rothstein","uuid":"f6147776-9140-4bad-b16a-dbf049947b68","stagnant":false,"codes":[{"code":"HEAL-F614-U1","title":"Save-verify before announce","detail":"Only say 'saved' after UpdateRoutine + get confirms; never after an Auto-review block.","needs_martin":false},{"code":"HEAL-F614-U2","title":"Live-Chime precheck skill","detail":"Run Money Desk precheck before claiming any routine is saved.","needs_martin":false},{"code":"HEAL-F614-U3","title":"Approve Nov13 first-money-desk-ping routine","detail":"Routine is stuck pending Auto-review; needs Martin's approval card.","needs_martin":true},{"code":"HEAL-F614-S","title":"Finance connector preflight that blocks announce-before-get","detail":"Learn a preflight: finance_list_connections + routine get must succeed before any 'saved' wording is allowed.","needs_martin":true}]},{"bot":"Cabrone","uuid":"f8bd8d5e-8f74-4453-86b8-41e06c18b529","stagnant":true,"codes":[{"code":"HEAL-F8BD-F","title":"First move (stagnant)","detail":"Emit first real task_event for 'QA delivery fidelity' on next run of: Simpleton 3 final QA, delivery, and action sheet after Zinky/Tim/Momo.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"QA delivery fidelity","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-F8BD-U1","title":"Instrument first real task_event for QA delivery fidelity","detail":"Heartbeat-only in ~48h; no task outcomes to judge. No other upgrade proposed.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"QA delivery fidelity","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-F8BD-S","title":"Action-sheet diff vs upstream totals","detail":"Learn to reconcile final action sheet against Zinky/Tim totals before delivery.","needs_martin":true}]},{"bot":"Belichek Jr","uuid":"facc6b03-38d0-4e6d-a2f2-c7bfcf9bc2e0","stagnant":true,"codes":[{"code":"HEAL-FACC-F","title":"First move (stagnant)","detail":"Stays paused (Martin stop); on resume, emit first task_event for 'align-fail draft fidelity'.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"align-fail draft fidelity","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-FACC-U1","title":"Instrument first real task_event for align-fail draft fidelity","detail":"Heartbeat-only in ~48h; no task outcomes to judge. No other upgrade proposed.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"align-fail draft fidelity","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-FACC-S","title":"HunterNet fail \u2192 template field map","detail":"Learn which HunterNet fail fields map into the customer draft template (draft only, no send).","needs_martin":true}]},{"bot":"Genius Ideas","uuid":"fd899d2c-dbbc-418b-bdb6-4cfb1ed18009","stagnant":true,"codes":[{"code":"HEAL-FD89-F","title":"First move (stagnant)","detail":"Emit first real task_event for 'roundtable signal quality' on next run of: Host Genius Ideas roundtable (Nerd / Beta / Alpha).","needs_martin":false,"action":{"type":"task_event_instrument","metric":"roundtable signal quality","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-FD89-U1","title":"Instrument first real task_event for roundtable signal quality","detail":"Heartbeat-only in ~48h; no task outcomes to judge. No other upgrade proposed.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"roundtable signal quality","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-FD89-S","title":"Roundtable idea scoring (Nerd/Beta/Alpha)","detail":"Learn to log each roundtable idea with a keep/drop verdict so signal quality is measurable.","needs_martin":true}]},{"bot":"The Overseer","uuid":"de6f1df0-c4c5-4793-9b8d-0be3735b3da9","stagnant":true,"codes":[{"code":"HEAL-DE6F-F","title":"First move (stagnant)","detail":"Emit first real task_event for 'fleet-oversight fidelity' on next run of: Observe roundtable: flag loops, verify facts, catch scope drift; evening SHA; Fleet Feed / performance pack.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"fleet-oversight fidelity","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-DE6F-U1","title":"Instrument first real task_event for fleet-oversight fidelity","detail":"Heartbeat-only in ~48h; no task outcomes to judge. No other upgrade proposed.","needs_martin":false,"action":{"type":"task_event_instrument","metric":"fleet-oversight fidelity","observation_only":true,"mutates_core":false,"send_via":"SendToAgent"}},{"code":"HEAL-DE6F-S","title":"Fact-verify citations for every fleet flag","detail":"Learn to attach the source row/transcript id to each loop/drift/fact-error flag it raises.","needs_martin":true}]}],"apply":{"endpoint":"/api/heal-apply","default_dry_run":true,"airtable_table":"Heal Applications","airtable_table_id":"tbldi5vLjUbT08yYY","live_requires":"HEAL_APPLY_SECRET + dryRun:false","first_safe_action":"task_event_instrument"}};var MSEL=null;function loadHeal(){}
+
+function healMem(){try{return JSON.parse(localStorage.getItem('hubHealMem')||'{}')}catch(e){return{}}}
+function flagStore(){try{return JSON.parse(localStorage.getItem('hubHealFlags')||'{}')}catch(e){return{}}}
+function saveFlags(f){try{localStorage.setItem('hubHealFlags',JSON.stringify(f))}catch(e){}}
+function snapOf(d){var hb=d.hb||{},S=d.S||{};return{ts:Date.now(),lastBeat:hb.lastBeat||null,status:hb.status||null,note:hb.note||null,flags:(d.L&&d.L.recentFlags)||[],fatigue:S.fat&&S.fat.status||null,mist:S.mist&&S.mist.count||0,trend:S.trend&&S.trend.dir||null}}
+function leaveAloneName(n){return /^(Toto|Wokanda|Rafiki|Pepe|MK4 Master|Raj)$/i.test(n)}
+function healConfidence(reasons,code,botName){
+  // Lower = more confident (safer to auto-apply). Threshold AUTO_HEAL_MAX=40
+  if(leaveAloneName(botName))return 95;
+  if(code&&code.needs_martin)return 92;
+  var s=28;
+  if(reasons.indexOf('Stagnant')>=0&&reasons.some(function(r){return/^No signal|Heartbeat stale/.test(r)}))s=22;
+  if(reasons.some(function(r){return/^Fatigue/.test(r)}))s=Math.min(s,32);
+  if(reasons.some(function(r){return/Week trend worse/.test(r)}))s+=25;
+  if(reasons.some(function(r){return/Mistakes up/.test(r)}))s+=20;
+  if(reasons.length>=3)s+=15;
+  if(!code)s=88;
+  return Math.max(0,Math.min(100,s));
+}
+var AUTO_HEAL_MAX=40;
+function outcomeBetter(before,d){
+  if(!before)return null;
+  var hb=d.hb||{},now=Date.now();
+  var fresh=hb.lastBeat&&(now-new Date(hb.lastBeat)<=6*3600e3);
+  var wasStale=!before.lastBeat||(now-new Date(before.lastBeat)>6*3600e3);
+  if(fresh&&wasStale)return true;
+  if(fresh&&before.lastBeat&&new Date(hb.lastBeat)>new Date(before.lastBeat))return true;
+  var fat=d.S&&d.S.fat&&d.S.fat.status;
+  if(before.fatigue&&/warming|fatigued/.test(before.fatigue)&&fat&&!/warming|fatigued/.test(fat))return true;
+  if(fresh&&(!d.S||!d.S.mist||d.S.mist.count<=(before.mist||0)))return true;
+  if(!fresh&&before.lastBeat)return false;
+  return null;
+}
+function healActionOf(code){
+  if(code&&code.action&&code.action.type)return code.action;
+  var d=(code&&code.detail)||'',t=(code&&code.title)||'';
+  if(/task_event/i.test(d+t)||/^First move/i.test(t)||/Instrument first real task_event/i.test(t)){
+    var m=d.match(/task_event for '([^']+)'/i)||t.match(/for (.+)$/i);
+    return{type:'task_event_instrument',metric:(m&&m[1]||'core-task quality').slice(0,200),observation_only:true,mutates_core:false,send_via:'SendToAgent'};
+  }
+  return null;
+}
+function postHealDryRun(bot,code,auto){
+  return new Promise(function(resolve){
+    try{
+      var action=healActionOf(code);
+      if(!action||action.type!=='task_event_instrument'){
+        resolve({ok:false,skipped:true,error:'not_task_event'});
+        return;
+      }
+      var hc=HEAL&&HEAL.bots&&HEAL.bots.find(function(x){return x.bot.toLowerCase()==String(bot).toLowerCase()});
+      fetch('/api/heal-apply',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          bot_name:bot,
+          bot_uuid:(hc&&hc.uuid)||'',
+          heal_code:code&&code.code,
+          heal_title:code&&code.title,
+          detail:code&&code.detail,
+          action:action,
+          dryRun:true,
+          source:auto?'hub-monitor-auto':'hub-monitor'
+        })
+      }).then(function(r){return r.json().then(function(j){j._http=r.status;return j}).catch(function(){return{ok:false,error:'bad_json',_http:r.status}})}
+      ).then(function(j){resolve(j||{ok:false,error:'empty'})}
+      ).catch(function(e){resolve({ok:false,error:String(e&&e.message||e)})});
+    }catch(e){resolve({ok:false,error:String(e&&e.message||e)})}
+  });
+}
+function applyHeal(bot,code,before,auto){
+  var f=flagStore();
+  var k=bot+'::'+(code&&code.code||'none');
+  f[k]={bot:bot,code:code&&code.code||null,title:code&&code.title||null,before:before,appliedAt:new Date().toISOString(),auto:!!auto,status:'applied',needsMartin:!!(code&&code.needs_martin)};
+  saveFlags(f);
+  var mem=healMem();if(code&&code.code)mem[code.code]=new Date().toISOString();
+  try{localStorage.setItem('hubHealMem',JSON.stringify(mem))}catch(e){}
+  pushAct('heal',(auto?'Auto-applied ':'Applied ')+(code&&code.code||'heal')+' · '+bot,(code&&code.title)||'',bot);
+  toast((auto?'Auto-applied ':'Applied ')+(code&&code.code||'heal')+' · '+bot);
+  // Always attempt Airtable dry-run for task_event heals (no bot send)
+  postHealDryRun(bot,code,auto).then(function(j){
+    if(j&&j.ok){toast('Dry-run logged · '+(code&&code.code||'heal'));pushAct('heal','Dry-run '+((code&&code.code)||'')+' · '+bot,'Heal Applications '+(j.record_id||''),bot);renderMon()}
+    else if(j&&j.skipped){renderMon()}
+    else{toast('Dry-run failed · '+(j&&j.error||'error'));pushAct('heal','Dry-run failed '+((code&&code.code)||'')+' · '+bot,String(j&&(j.error||j.message)||''),bot);renderMon()}
+  });
+  renderMon();
+}
+var _healClickBound=false;
+function bindHealButtons(){/* buttons use data-heal; listener bound once below */}
+function onHealClick(e){
+  var btn=e.target&&e.target.closest&&e.target.closest('button[data-heal]');
+  if(!btn)return;
+  var act=btn.getAttribute('data-heal');
+  if(act!=='approve'&&act!=='rollback')return;
+  e.preventDefault();
+  e.stopPropagation();
+  if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+  var bot=btn.getAttribute('data-bot')||'',code=btn.getAttribute('data-code')||'';
+  if(act==='approve')approveHeal(bot,code);
+  else rollbackHeal(bot,code);
+}
+if(!_healClickBound){_healClickBound=true;document.addEventListener('click',onHealClick,true);document.addEventListener('mousedown',function(e){var b=e.target&&e.target.closest&&e.target.closest('button[data-heal]');if(b){e.stopPropagation()}},true)}
+function approveHeal(bot,codeStr){
+  var D=hubData(),d=D.find(function(x){return x.n===bot});
+  var hc=HEAL&&HEAL.bots.find(function(x){return x.bot.toLowerCase()==bot.toLowerCase()});
+  var code=(hc&&hc.codes||[]).find(function(c){return c.code===codeStr});
+  if(!d||!code){toast('Missing heal');return}
+  window._keepHealOpen=bot;
+  applyHeal(bot,code,snapOf(d),false);
+}
+function rollbackHeal(bot,codeStr){
+  var f=flagStore();var k=bot+'::'+codeStr;if(f[k]){f[k].status='rolled_back';f[k].rolledAt=new Date().toISOString();saveFlags(f)}
+  window._keepHealOpen=bot;
+  pushAct('heal','Rolled back '+codeStr+' · '+bot,'',bot);toast('Rolled back '+codeStr);renderMon();
+}
+
+function renderMon(){var el=document.getElementById('monv');if(!el||el.hidden)return;var D=hubData().filter(function(x){return !leaveAloneName(x.n)}),mem=healMem(),now=Date.now(),acts=loadAct();
+var liveN=0,staleN=0,nosig=0;
+function botSigLabel(d){var hb=d.hb;if(!hb||!hb.lastBeat)return{k:'down',t:'No signal'};if(now-new Date(hb.lastBeat)>6*3600e3)return{k:'stale',t:'Stale'};return{k:'live',t:'Live'}}
+D.forEach(function(d){var s=botSigLabel(d);if(s.k==='down')nosig++;else if(s.k==='stale')staleN++;else liveN++});
+var connOk=0,connNa=0;try{(CONNECTIONS.items||[]).forEach(function(x){if(x.status=='connected')connOk++;else connNa++})}catch(e){}
+var flags=flagStore();
+var need=[];D.forEach(function(d){var S=d.S,r=[],hb=d.hb,hc=HEAL&&HEAL.bots.find(function(x){return x.bot.toLowerCase()==d.n.toLowerCase()});
+if(S&&S.fat&&/warming|fatigued/.test(S.fat.status))r.push('Fatigue '+S.fat.status);
+if(S&&S.trend&&S.trend.dir=='worse')r.push('Week trend worse');
+if(S&&S.mist&&S.mist.trend=='up'&&S.mist.count>=2)r.push('Mistakes up ('+S.mist.count+')');
+if(hc&&hc.stagnant)r.push('Stagnant');
+if(!hb||!hb.lastBeat)r.push('No signal');else if(now-new Date(hb.lastBeat)>6*3600e3)r.push('Heartbeat stale ('+ago(hb.lastBeat)+')');
+if(r.length)need.push({d:d,r:r,hc:hc})});
+need.sort(function(a,b){return b.r.length-a.r.length});
+Object.keys(flags).forEach(function(k){var ent=flags[k];if(!ent||ent.status!=='applied')return;var d=D.find(function(x){return x.n===ent.bot});if(!d)return;var appliedMs=ent.appliedAt?new Date(ent.appliedAt).getTime():0;if(appliedMs&&(now-appliedMs)<30*60e3)return;var o=outcomeBetter(ent.before,d);if(o===true){ent.status='kept';ent.checkedAt=new Date().toISOString()}else if(o===false){ent.status='rolled_back';ent.rolledAt=new Date().toISOString();ent.reason='after worse/stale';pushAct('heal','Auto-reverted '+((ent.code)||'')+' · '+ent.bot,'outcome worse/stale',ent.bot)}});
+saveFlags(flags);
+var attn=need.slice();
+var attnIds={};attn.forEach(function(x){attnIds[x.d.n]=1});
+var h='<p class="meta"><span class="live-dot" title="Live"></span>'+(LIVE?'Live · '+new Date(LIVE.asOf).toLocaleString('en-US',{timeZone:'America/New_York',dateStyle:'short',timeStyle:'short'})+' ET':'Live offline'+(LERR?' — '+esc(LERR):''))+' · <span id="hub-live-ago">'+agoLive()+'</span> · <button class="back" style="padding:0;font-size:12px" onclick="loadLive();loadConnAuth()">Refresh</button></p>';
+h+='<div class="msum"><div class="monc"><div class="mn" style="color:'+(attn.length?'#E8C090':'#B8E0B8')+'">'+attn.length+'</div><div class="mr">Need attention</div></div><div class="monc"><div class="mn">'+liveN+'</div><div class="mr">Fresh</div></div><div class="monc"><div class="mn">'+(staleN+nosig)+'</div><div class="mr">Down / stale</div></div><div class="monc"><div class="mn">'+connOk+(connNa?'/'+connNa:'')+'</div><div class="mr">Connectors</div></div></div>';
+h+='<div class="grp">Needs attention <span class="gcount">('+attn.length+')</span></div>';
+if(!attn.length){h+='<div class="mrow ok"><div class="mleft"><div class="mname">All clear</div><div class="mstat">No stale beats, missing signals, or heal flags</div></div><span class="mbadge live">Ok</span></div>'}
+attn.forEach(function(x){
+ var d=x.d,hb=d.hb,s=botSigLabel(d),top=((x.hc&&x.hc.codes)||[])[0]||null,conf=healConfidence(x.r,top,d.n);
+ h+='<div class="mrow attn"><div class="mleft"><div class="mname">'+esc(d.n)+'</div><div class="mstat">'+esc(x.r.slice(0,2).join(' · '))+(hb&&hb.note?' · '+esc(String(hb.note).slice(0,80)):'')+'</div></div><span class="mbadge '+s.k+'">'+s.t+'</span></div>';
+ h+='<details class="macc" data-heal-bot="'+esc(d.n).replace(/"/g,'&quot;')+'"'+(window._keepHealOpen===d.n?' open':'')+'><summary>Heal &amp; detail <span class="sumr">conf '+(conf||'—')+'/100</span></summary><div class="abody">';
+ var cs=(x.hc&&x.hc.codes)||[];
+ if(!cs.length)h+='<div class="mut2">No heal code on file.</div>';
+ cs.slice(0,2).forEach(function(c){
+  var seen=mem[c.code];if(!seen)mem[c.code]=new Date().toISOString();
+  var ek=d.n+'::'+c.code,ent=flags[ek],cConf=healConfidence(x.r,c,d.n),before=snapOf(d);
+  if(!flags[ek]||flags[ek].status==='rolled_back'){flags[ek]={bot:d.n,code:c.code,before:before,flaggedAt:new Date().toISOString(),status:'flagged',confidence:cConf}}
+  else if(flags[ek]&&!flags[ek].before)flags[ek].before=before;
+  h+='<div class="mcd"><b>'+esc(c.code)+(c.needs_martin?' · NEEDS MARTIN':'')+' · '+cConf+'</b><div>'+esc(c.title)+'</div>';
+  if(ent&&ent.status==='applied')h+='<span class="tag warn">Applied</span>';
+  else if(ent&&ent.status==='kept')h+='<span class="tag ok">Kept</span>';
+  else if(ent&&ent.status==='rolled_back')h+='<span class="tag bad">'+(ent.reason?'Auto-reverted':'Rolled back')+'</span>';
+  else if(ent&&ent.status==='pending_martin')h+='<span class="tag warn">Waiting</span>';
+  h+='<div class="mact">';
+  if(!ent||ent.status==='flagged'||ent.status==='rolled_back'||ent.status==='pending_martin'){
+    if(cConf<AUTO_HEAL_MAX&&!c.needs_martin&&!leaveAloneName(d.n)){
+      if(!ent||(ent.status!=='applied'&&ent.status!=='kept')){
+        if(!ent||!ent.autoAttempted){
+          flags[ek]={bot:d.n,code:c.code,title:c.title,before:before,appliedAt:new Date().toISOString(),auto:true,autoAttempted:true,status:'applied',confidence:cConf};
+          mem[c.code]=new Date().toISOString();
+          pushAct('heal','Auto-applied '+c.code+' · '+d.n,c.title||'',d.n);
+          h+='<span class="tag ok">Auto-applied</span>';
+        }
+      }
+    } else {
+      flags[ek]=Object.assign(flags[ek]||{},{bot:d.n,code:c.code,before:before,status:'pending_martin',confidence:cConf,flaggedAt:(flags[ek]&&flags[ek].flaggedAt)||new Date().toISOString()});
+      h+='<button type="button" class="pri heal-btn" data-heal="approve" data-bot="'+esc(d.n).replace(/"/g,'&quot;')+'" data-code="'+esc(c.code).replace(/"/g,'&quot;')+'">Approve</button>';
+    }
+  }
+  if(ent&&ent.status==='applied')h+='<button type="button" class="heal-btn" data-heal="rollback" data-bot="'+esc(d.n).replace(/"/g,'&quot;')+'" data-code="'+esc(c.code).replace(/"/g,'&quot;')+'">Roll back</button>';
+  h+='</div></div>'});
+ h+='</div></details>';
+});
+saveFlags(flags);try{localStorage.setItem('hubHealMem',JSON.stringify(mem))}catch(e){}
+h+='<div class="grp">Recent signals <span class="gcount">('+Math.min(acts.length,20)+')</span></div>';
+h+='<div class="afeed">';
+if(!acts.length){h+='<div class="alog"><div class="atitle">No events yet</div><div class="adet">Live changes appear here.</div></div>'}
+acts.slice(0,20).forEach(function(a){var age=Math.max(0,Math.floor((now-a.t)/1000));var when=age<5?'just now':(age<60?age+'s ago':(age<3600?Math.floor(age/60)+'m ago':Math.floor(age/3600)+'h ago'));
+ h+='<div class="alog"><div class="arow"><div class="atitle"><span class="akind '+(a.kind||'status')+'">'+esc(a.kind||'status')+'</span>'+esc(a.title||'')+'</div><div class="atime">'+when+'</div></div>';
+ if(a.detail)h+='<details><summary>Detail</summary><div class="adet" style="display:block">'+esc(a.detail)+'</div></details>';
+ h+='</div>'});
+h+='</div>';
+h+='<details class="macc"><summary>All bots <span class="sumr">'+D.length+' · '+liveN+' live</span></summary><div class="abody">';
+D.slice().sort(function(a,b){var ta=a.hb&&a.hb.lastBeat?+new Date(a.hb.lastBeat):0,tb=b.hb&&b.hb.lastBeat?+new Date(b.hb.lastBeat):0;return tb-ta}).forEach(function(d){
+ var hb=d.hb,s=botSigLabel(d),flags2=(d.L&&d.L.recentFlags)||[];
+ h+='<div class="mrow'+(s.k!=='live'?' attn':'')+(CHANGED[d.n]?' changed':'')+'"><div class="mleft"><div class="mname">'+esc(d.n)+'</div><div class="mstat">'+(hb&&hb.status?esc(hb.status)+' · ':'')+(hb&&hb.lastBeat?ago(hb.lastBeat):(hb&&hb.note?esc(String(hb.note).slice(0,60)):'—'))+(flags2.length?' · '+esc(flags2[0]):'')+'</div></div><span class="mbadge '+s.k+'">'+s.t+'</span></div>'});
+h+='</div></details>';
+h+='<details class="macc"><summary>Heal memory &amp; tools <span class="sumr">'+(HEAL?HEAL.bots.reduce(function(a,b){return a+b.codes.length},0)+' codes':'—')+'</span></summary><div class="abody">';
+h+='<div class="mut2" style="margin:6px 0">'+(HEAL?esc(String(HEAL.bots.reduce(function(a,b){return a+b.codes.length},0)))+' codes · '+Object.keys(mem).length+' offered · '+Object.keys(flags).length+' flagged here':'Loading…')+' · browser-only · <button class="back" style="padding:0;font-size:12px" onclick="clearAct()">Clear activity feed</button></div>';
+h+='</div></details>';
+el.innerHTML=h;startHubTick();
+if(window._keepHealOpen){var keep=window._keepHealOpen;el.querySelectorAll('details.macc[data-heal-bot]').forEach(function(det){if(det.getAttribute('data-heal-bot')===keep)det.open=true});window._keepHealOpen=null}
+bindHealButtons()}
+
+</script><script>
+ROSTER={"groups":{"Emails":["Zinky","Simpleton 3","Tim","Cabrone"],"Financial":["Rothstein","Steinburg","Momo"],"Automotive":["Estimate generator","Tag","BOLBOOO","Belichek Jr"],"Coding":["Ship Intake","Agent 47"],"Management":["Gofer","Jeff","The Overseer","Genius Ideas"],"Privacy":["Privacy Scanner","Clean Up"]}};
+var PAN=[{"name":"Privacy Scanner","group":"Privacy","leaveAlone":false,"live":[{"title":"Whitepages blocked + Spokeo link still outstanding from Batch 4","detail":"Batch 4 closed TPS and PeopleFinders but left Whitepages blocked and Spokeo waiting on a link; heartbeat now says brokers paused. Re-open those two before starting the next batch.","evidence_cite":"A47 Oct 28 4:16a EDT: 'Whitepages blocked, Spokeo awaiting link' + heartbeat Oct 29 6:10p EDT: 'brokers paused, awaiting next batch clear'"}],"task":[{"title":"Track per-broker opt-out IDs to confirmed removal","detail":"Keep a ledger of TPS 17925194 / PeopleFinders 17930476 with a re-check date so 'closed' means verified gone, not just submitted.","evidence_cite":"A47 Oct 28 4:16a EDT: 'closed Batch 4 opt-outs (TPS 17925194, PeopleFinders 17930476)'"}],"custom":[{"title":"Spokeo verification-link watcher","detail":"Search the opt-out inbox for the Spokeo confirmation link and click-through flow so the batch doesn't stall waiting on it.","evidence_cite":"A47 Oct 28: 'Spokeo awaiting link'","kind":"Integration \u00b7 Self-heal"}]},{"name":"Steinburg","group":"Financial","leaveAlone":false,"live":[{"title":"Perpay Equifax dispute 6301587051 due ~11/27","detail":"Dispute is pending with an ~11/27 window; set a dated check so the result is read and posted to the per-debt desk on time.","evidence_cite":"heartbeat Oct 29 6:11p EDT: 'Perpay Equifax 6301587051 pending ~11/27'"}],"task":[{"title":"Confirm Perpay $0 actually reports on the Equifax file","detail":"Marked Perpay paid in full on the desk; verify the bureau tradeline shows $0 before telling Rothstein it's settled credit-wise.","evidence_cite":"A47 Oct 28 6:52p EDT: 'marked Perpay $0/paid in full \u2026 (Equifax dispute 6301587051), told Rothstein'"}],"custom":[{"title":"Dispute-deadline reminder routine","detail":"One routine keyed to dispute 6301587051's ~11/27 date that pulls the result and updates the desk.","evidence_cite":"heartbeat Oct 29: 'pending ~11/27'","kind":"Self-heal \u00b7 Routine"}]},{"name":"Simpleton 3","group":"Emails","leaveAlone":false,"live":[{"title":"No heartbeat ever written \u2014 chased Oct 29","detail":"Heartbeat row status 'chased' with lastBeat null; the orchestrator must write its first beat and the hourly routine.","evidence_cite":"Heartbeats: status chased, note 'Chased Oct 29 ~6:10p \u2014 write first beat + hourly routine'","needs_martin":true}],"task":[{"title":"Log the orchestration hand-offs so A47 has something to copy","detail":"A47 found no transcript for Simpleton 3 while Zinky/Tim/Cabrone each logged work; the orchestrator should post a one-line dispatch per lane.","evidence_cite":"A47 Oct 29 3:30a EDT: 'No transcript recorded yet for Simpleton 3 - nothing to log'"}],"custom":[{"title":"Reconcile team totals against Zinky's off-by-3","detail":"As orchestrator, cross-check Zinky's wipe totals before Cabrone delivery so the 663 vs 660 type miss is caught upstream.","evidence_cite":"Zinky fact-error Oct 29 3:00p EDT: 'Trash total 663 vs mailbox 660.'","kind":"Self-heal"}]},{"name":"BOLBOOO","group":"Automotive","leaveAlone":false,"live":[{"title":"Add Overseer to the BOLBOOO room (or name the owner)","detail":"Heartbeat chase can't land because BOLBOOO's id is a room Overseer isn't in. Add Overseer to that room or name which bot owns the VIN board.","evidence_cite":"Heartbeats note: 'Chased failed \u2014 BOLBOOO id is a room Overseer is not in; needs Martin to add Overseer or name the bot owner'","needs_martin":true}],"task":[{"title":"Name who owns BOLBOOO's VIN-board heartbeat","detail":"Pepe posts VINs here; pick Pepe or a dedicated bot as beat owner so A47 stops logging placeholder rows.","evidence_cite":"A47 Oct 29 4:53a EDT: 'No 1:1 transcript recorded for BOLBOOO; placeholder row.'","needs_martin":true}],"custom":[{"title":"Treat BOLBOOO as a room, not a 1:1 bot, in fleet scans","detail":"Until ownership is named, Improve/Hub should flag BOLBOOO as room-scoped so scans don't expect a private transcript.","evidence_cite":"Heartbeats chase-failed note + A47 placeholder row Oct 29 4:53a EDT","kind":"Self-heal"}]},{"name":"Estimate generator","group":"Automotive","leaveAlone":false,"live":[{"title":"Resume the guided quote \u2014 customer name is next","detail":"A quote is mid-flow waiting on customer name. Finish or save that draft before starting a new batch.","evidence_cite":"heartbeat Oct 29 6:10p EDT: 'mid guided quote (customer name next)'"}],"task":[{"title":"Prioritize estimate work over Overseer ack churn","detail":"Late-evening session was mostly acknowledging Overseer lock updates with zero estimates for Martin \u2014 skip those acks when a quote is open.","evidence_cite":"A47 Oct 28 11:49p EDT: 'acknowledging a series of Overseer hard-lock and consistency updates \u2026 with no estimate work for Martin'"}],"custom":[{"title":"Persist mid-quote draft before any pause","detail":"Write fields filled so far to a draft file when the flow stalls (e.g. waiting on customer name) so resume skips re-asking.","evidence_cite":"heartbeat 'mid guided quote (customer name next)' + mistakes 2 (up) in Hub snapshot","kind":"Coding \u00b7 Self-heal"}]},{"name":"Tag","group":"Automotive","leaveAlone":false,"live":[{"title":"Confirm today's Fri 10/30 RO11 tags match the appointment sheet","detail":"Held R011 print already went out \u2014 verify tag count and RO numbers against Friday's appointment list before shop open.","evidence_cite":"heartbeat Oct 29 6:10p EDT: 'Fri 10/30 RO11 printed; idle'"}],"task":[{"title":"Run gen.py 27/27 self-QA before every print","detail":"Self-QA passed 27/27 on layout; make it an automatic pre-print gate, not only on request.","evidence_cite":"A47 Oct 28 6:27p EDT: 'ran self-QA (27/27 pass) on gen.py layout'"}],"custom":[{"title":"Standardize job IDs as R011 (not RO11)","detail":"Heartbeat writes 'RO11' while A47 logged 'R011' \u2014 one ID format so tag PDFs stay searchable.","evidence_cite":"heartbeat 'RO11 printed' vs A47 'held R011 key-tag PDF'","kind":"Self-learn"}]},{"name":"Momo","group":"Financial","leaveAlone":false,"live":[{"title":"Idle waiting on Jeff \u2014 no dig assigned","detail":"Momo is parked waiting for Jeff; ask for or self-pick the next dig from the payout handoff list it already sent.","evidence_cite":"heartbeat Oct 29 6:11p EDT: 'idle, waiting Jeff assign dig'"}],"task":[{"title":"Work the payout handoff list it sent Jeff","detail":"Momo produced a money/payout handoff list on Oct 28; turn it into an ordered claim queue rather than waiting.","evidence_cite":"A47 Oct 28 3:35a EDT: 'sent Jeff money/payout handoff list'"}],"custom":[]},{"name":"Jeff","group":"Management","leaveAlone":false,"live":[{"title":"One-shot beat \u2014 no hourly routine","detail":"Jeff's heartbeat is a single manual beat; set the hourly routine so freshness doesn't decay.","evidence_cite":"heartbeat Oct 29 7:53p EDT: 'alive, idle \u2014 one-shot beat, no hourly routine yet'","needs_martin":true}],"task":[{"title":"Assign Momo's queued dig","detail":"Momo is idle waiting on Jeff to assign; Jeff should route the payout list.","evidence_cite":"Momo heartbeat: 'waiting Jeff assign dig'"}],"custom":[{"title":"Plan-usage check before long reports","detail":"Jeff already diagnosed Super plan at 77.1%; check usage before heavy YoY reports.","evidence_cite":"A47 Oct 29 2:45a EDT: 'Super plan 77.1% used (resets Thu 7:42pm ET)'","kind":"Research \u00b7 Self-learn"}]},{"name":"Agent 47","group":"Coding","leaveAlone":false,"live":[{"title":"Evening Log re-check parked \u2014 batches 1\u20133 only","detail":"Heartbeat says parked until evening re-check; several bots (Simpleton 3, BOLBOOO, Clean Up) still have only placeholder rows.","evidence_cite":"heartbeat Oct 29 6:10p EDT: 'parked until evening Log re-check; batches 1\u20133 done' + A47 placeholder rows for BOLBOOO/Clean Up"}],"task":[{"title":"Self-log: Agent 47 has zero A47 rows of its own","detail":"Hub live shows no A47 entries for Agent 47 itself; log its own batch runs.","evidence_cite":"/api/hub-live: Agent 47 a47Recent = [] , recentFlags = []"}],"custom":[]},{"name":"Ship Intake","group":"Coding","leaveAlone":false,"live":[{"title":"No heartbeat row and no A47 row","detail":"Ship Intake is absent from both Heartbeats and Agent 47 Log; dossier still seed:true.","evidence_cite":"/api/hub-live: no Ship Intake entry; dossier 9a934c79 seed:true, live_flag_count 0","needs_martin":true}],"task":[{"title":"Report BUILD\u2192PR fidelity per ship","detail":"Dossier metric is 'BUILD\u2192PR fidelity' with no data; write one row per ship (request, PR, gate result).","evidence_cite":"dossier 9a934c79 task_performance.metric_name 'BUILD\u2192PR fidelity', improve_options []"}],"custom":[{"title":"Use the ship-intake skill's handoff log as A47 source","detail":"The 3-little-hats-handoff / ship-intake skills already structure handoffs; point A47 at them.","evidence_cite":"dossier sources ['agent47','heartbeat'] but live_flags_added 0","kind":"Integration"}]},{"name":"Tim","group":"Emails","leaveAlone":false,"live":[{"title":"Two active boxes \u2014 confirm both lanes logged","detail":"Heartbeat covers martingrvw + marting8497 Spam/All Mail; A47 only shows martingrvw spam cleanup.","evidence_cite":"heartbeat Oct 29 6:12p EDT: 'active boxes martingrvw + marting8497' vs A47 Oct 28 'martingrvw SSDI/yourguidetoassistance spam cleanup'"}],"task":[{"title":"Post per-box wipe counts","detail":"Given Zinky's 663/660 miss on the same team, Tim's wipes should report exact per-box counts.","evidence_cite":"Zinky fact-error Oct 29 3:00p EDT + Tim heartbeat 'Spam/All Mail lane'"}],"custom":[]},{"name":"Gofer","group":"Management","leaveAlone":false,"live":[{"title":"Idle after Steinburg sampling dry-run","detail":"Pack #1 is live; run sampling on the next bot instead of idling.","evidence_cite":"heartbeat Oct 29 6:10p EDT: 'idle after Steinburg sampling dry-run; pack #1 live'"}],"task":[{"title":"Weekly digest + Airtable blockers brief not yet executed","detail":"Gofer read its setup briefs and stayed idle; deliver the first weekly digest.","evidence_cite":"A47 Oct 29 1:59a EDT: 'read its Overseer setup briefs (daily sampling, weekly digest, Airtable blockers) \u2026 stayed idle awaiting assignment'"}],"custom":[]},{"name":"Clean Up","group":"Privacy","leaveAlone":false,"live":[{"title":"No heartbeat row at all","detail":"Clean Up has no Heartbeats entry; only an A47 placeholder.","evidence_cite":"/api/hub-live: Clean Up heartbeat null; A47 Oct 29 4:53a EDT 'placeholder row'","needs_martin":true}],"task":[{"title":"Pick up Privacy Scanner's stuck brokers","detail":"Its partner has Whitepages blocked and Spokeo pending \u2014 Clean Up's room should own those two follow-ups.","evidence_cite":"Privacy Scanner A47 Oct 28: 'Whitepages blocked, Spokeo awaiting link'"}],"custom":[]},{"name":"Cabrone","group":"Emails","leaveAlone":false,"live":[{"title":"QA idle \u2014 verify locked trash rules still match","detail":"Standing trash rules (funding farm, jointrue, SSDI, ATM promos) are locked; check today's wipes against them.","evidence_cite":"heartbeat Oct 29 6:11p EDT: 'Simpleton 3 QA/sheet idle' + A47 Oct 28 'standing trash rules locked for funding farm, jointrue, SSDI, ATM promos'"}],"task":[{"title":"Catch count mismatches at final QA","detail":"Final QA let Zinky's 663 vs 660 through; add a totals reconcile step to the action sheet.","evidence_cite":"Zinky fact-error Oct 29 3:00p EDT: 'Trash total 663 vs mailbox 660.'"}],"custom":[]},{"name":"Belichek Jr","group":"Automotive","leaveAlone":false,"live":[{"title":"Still paused since Martin STOP ~2:56 AM \u2014 needs explicit resume","detail":"Do not handle Align Fail plates until Martin says resume in clear words.","evidence_cite":"heartbeat Oct 29 6:10p EDT: 'paused since Martin stop ~2:56 AM ET; Align Fail idle'","needs_martin":true}],"task":[{"title":"Enforce draft-only \u2014 no VIN lookup or Pepe match from Belichek","detail":"Before STOP it did HunterNet VIN lookups and match requests to Pepe. Role is customer draft only; leave lookups to Pepe/Toto.","evidence_cite":"A47 Oct 29 2:57a EDT: 'VIN lookup via HunterNet, match request to Pepe, then paused on Martin's STOP'"}],"custom":[{"title":"Hard gate: after STOP, ignore Align Fail until Martin resumes","detail":"Any Toto align-fail ping while paused should stay queued or ignored \u2014 never auto-unpause from room traffic.","evidence_cite":"heartbeat 'paused since Martin stop ~2:56 AM ET; Align Fail idle'","kind":"Self-heal"}]},{"name":"Genius Ideas","group":"Management","leaveAlone":false,"live":[{"title":"Invisible to Hub \u2014 no heartbeat, no A47","detail":"Dossier is seed:true with zero live flags; no rows in either table.","evidence_cite":"dossier fd899d2c seed:true, live_flag_count 0; /api/hub-live has no Genius Ideas entry","needs_martin":true}],"task":[{"title":"Log each Nerd/Beta/Alpha round","detail":"Metric 'roundtable signal quality' has no data; one summary row per roundtable.","evidence_cite":"dossier fd899d2c metric_name 'roundtable signal quality', improve_options []"}],"custom":[]},{"name":"The Overseer","group":"Management","leaveAlone":false,"live":[{"title":"Heartbeat note stale ('Table created')","detail":"Overseer's own beat still says table created; update to current fleet status.","evidence_cite":"heartbeat Oct 29 6:10p EDT: 'Table created; fleet heartbeat rule live'"}],"task":[{"title":"Close chase gaps it owns","detail":"BOLBOOO chase failed (not in room) and Simpleton 3 still has no beat after chase.","evidence_cite":"Heartbeats: BOLBOOO 'Chased failed', Simpleton 3 'chased', lastBeat null","needs_martin":true}],"custom":[{"title":"Agent 47 Log 'empty' was confirmed \u2014 verify fill","detail":"Overseer confirmed A47 Log empty during rename; re-check fill now batches 1\u20133 are done.","evidence_cite":"A47 Oct 29 3:28a EDT: 'confirmed Agent 47 Log empty' + A47 heartbeat 'batches 1\u20133 done'","kind":"Self-heal"}]},{"name":"Rothstein","group":"Financial","leaveAlone":false,"live":[{"title":"False save claim on Nov13 routine","detail":"Announced first-money-desk-ping as saved while it was still blocked.","evidence_cite":"fact-error Oct 29 4:00p EDT: 'Said Nov13 first-money-desk-ping was saved.'"},{"title":"Nov13 routine pending Auto-review","detail":"first-money-desk-ping is still not live; needs approval before any 'saved' wording.","evidence_cite":"heartbeat Oct 29 6:10p EDT: 'Nov13 pending Auto-review' + A47 Oct 29 5:01a EDT: 'first-money-desk-ping NO Auto-review blocked'","needs_martin":true}],"task":[{"title":"Save-verify before announce","detail":"Only say 'saved' after UpdateRoutine + get confirms; never after an Auto-review block.","evidence_cite":"fact-error Oct 29 4:00p EDT: 'Said Nov13 first-money-desk-ping was saved.' | false save"},{"title":"Live-Chime precheck skill","detail":"Run Money Desk precheck before claiming any routine is saved.","evidence_cite":"heartbeat Oct 29 6:10p EDT: 'Nov13 pending Auto-review'"},{"title":"Approve Nov13 first-money-desk-ping routine","detail":"Routine is stuck pending Auto-review; needs Martin's approval card.","evidence_cite":"A47 Oct 29 5:01a EDT: 'first-money-desk-ping NO Auto-review blocked'","needs_martin":true}],"custom":[{"title":"Save-claim preflight skill","detail":"Code a preflight that blocks any 'saved' wording until UpdateRoutine returns and a routine get shows the Nov13 first-money-desk-ping live.","evidence_cite":"fact-error Oct 29 4:00p EDT: 'Said Nov13 first-money-desk-ping was saved.'","kind":"Coding \u00b7 Self-heal"},{"title":"Research Auto-review block patterns for money-desk routines","detail":"Study why first-money-desk-ping was blocked and log which routine wording/scopes trip Auto-review, so future money-desk pings are drafted to pass or escalate first.","evidence_cite":"A47 Oct 29 5:01a EDT: 'first-money-desk-ping NO Auto-review blocked'","kind":"Research \u00b7 Self-learn"},{"title":"Finance connector preflight before any money-desk announce","detail":"Run finance_list_connections and confirm the account feed is connected before announcing a money-desk routine as active.","evidence_cite":"fact-error Oct 29 4:00p EDT + A47 'first-money-desk-ping NO Auto-review blocked'","kind":"Integration","needs_martin":true},{"title":"Routine-get status check on pending Auto-review","detail":"After each heartbeat, re-get the Nov13 routine; if still pending Auto-review, report 'pending \u2014 needs Martin' instead of 'saved'.","evidence_cite":"heartbeat Oct 29 6:10p EDT: 'Nov13 pending Auto-review'","kind":"Connection \u00b7 Self-heal","needs_martin":true}]},{"name":"Zinky","group":"Emails","leaveAlone":false,"live":[{"title":"Trash 663 vs mailbox 660 fact-error","detail":"Posted a wipe total that did not reconcile with the mailbox count.","evidence_cite":"fact-error Oct 29 3:00p EDT: 'Trash total 663 vs mailbox 660.'"}],"task":[{"title":"Trash-total verify before wipe totals","detail":"Re-read exact Gmail trash/inbox counts and reconcile before posting any wipe total.","evidence_cite":"fact-error Oct 29 3:00p EDT: 'Trash total 663 vs mailbox 660.'"}],"custom":[{"title":"Exact Gmail count pagination before any wipe receipt","detail":"Page messages.list with nextPageToken (includeSpamTrash) instead of resultSizeEstimate; post totals only from exact counts.","evidence_cite":"fact-error Oct 29 3:00p EDT: 'Trash total 663 vs mailbox 660.'","kind":"Coding \u00b7 Self-learn"},{"title":"Research Gmail thread vs message counting","detail":"Learn why Trash/mailbox totals diverge (threads vs messages, spam, pending deletes) and note which count wipe receipts should use.","evidence_cite":"fact-error Oct 29 3:00p EDT: 'Trash total 663 vs mailbox 660.'","kind":"Research"},{"title":"Post-wipe reconcile via Gmail labels.get","detail":"After a wipe, read labels.get messagesTotal for TRASH and INBOX; if they disagree with the receipt, auto-correct before posting.","evidence_cite":"fact-error Oct 29 3:00p EDT: 'Trash total 663 vs mailbox 660.'","kind":"Integration \u00b7 Self-heal"}]},{"name":"Toto","group":"Leave-alone","leaveAlone":true,"live":[],"task":[],"custom":[]},{"name":"Wokanda","group":"Leave-alone","leaveAlone":true,"live":[],"task":[],"custom":[]},{"name":"Rafiki","group":"Leave-alone","leaveAlone":true,"live":[],"task":[],"custom":[]},{"name":"Pepe","group":"Leave-alone","leaveAlone":true,"live":[],"task":[],"custom":[]},{"name":"MK4 Master","group":"Leave-alone","leaveAlone":true,"live":[],"task":[],"custom":[]},{"name":"Raj","group":"Leave-alone","leaveAlone":true,"live":[],"task":[],"custom":[]}];
+var SEL=null,CPT={},CPN=0;
+renderImprove();
+(function(){var el=document.getElementById('icard');if(el&&!el._impDel){el._impDel=1;el.addEventListener('click',onImproveClick);el.addEventListener('keydown',onImproveKey)}})();
+function loadPanels(){fetch('/improve-panels.json?v='+Date.now()).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(j=>{if(j&&j.bots&&j.bots.length){PAN=j.bots;if(location.hash.slice(1)==='improve')renderImprove();if(window.renderConn)renderConn()}}).catch(e=>{console.warn('improve-panels',e)})}loadPanels();
+fetch('/upgrade-lists.json').then(r=>r.ok?r.json():null).then(j=>{if(j){ROSTER=j;renderImprove();renderHub&&renderHub()}}).catch(()=>{});
+
+function cpy(b){var t=CPT[b.dataset.i];(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).catch(()=>{var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove()}).then(()=>{b.textContent='Copied';b.classList.add('ok');setTimeout(()=>{b.textContent='Copy';b.classList.remove('ok')},1400)})}
+function rc(r){var i=CPN++;CPT[i]=(r.kind?r.kind+': ':'')+r.title+' — '+r.detail+'\nEvidence: '+r.evidence_cite;
+return '<div class="rec"><div class="rt">'+(r.kind?'<span class="dot">'+esc(r.kind)+' · </span>':'')+esc(r.title)+(r.needs_martin?'<span class="nm">Needs Martin</span>':'')+'</div><div class="rd">'+esc(r.detail)+'</div><div class="ev">'+esc(r.evidence_cite)+'</div>'+xline(r)+'<button class="cp" data-i="'+i+'" onclick="cpy(this)">Copy</button></div>'}
+function openRec(r){return !!(r&&!r.done&&!r.resolved&&r.open!==false)}function cnt(b){if(b.leaveAlone)return 0;var n=0,ks=["live","task","custom"];for(var i=0;i<ks.length;i++)(b[ks[i]]||[]).forEach(function(r){if(openRec(r))n++});return n}
+function pick(n){try{SEL=n||null;renderImprove();scrollTo(0,0)}catch(e){console.error('pick',e);var el=document.getElementById('icard');if(el)el.innerHTML='<div class="imv"><p class="meta">Improve detail error</p><div class="mut">'+esc(String(e&&e.message||e))+'</div><button class="back" onclick="pick(null)">← All bots</button></div>'}}
+function onImproveClick(ev){var t=ev.target.closest('[data-bot]');if(!t||!document.getElementById('icard').contains(t))return;ev.preventDefault();pick(t.getAttribute('data-bot'))}
+function onImproveKey(ev){if(ev.key!=='Enter'&&ev.key!==' ')return;var t=ev.target.closest('[data-bot]');if(!t)return;ev.preventDefault();pick(t.getAttribute('data-bot'))}
+function renderImprove(){var el=document.getElementById('icard');if(!el)return;CPT={};CPN=0;
+var h='<div class="imv"><p class="meta">'+(LIVE?'Live from Airtable · '+new Date(LIVE.asOf).toLocaleString('en-US',{timeZone:'America/New_York',dateStyle:'medium',timeStyle:'short'})+' ET':'Live Airtable data unavailable'+(LERR?' — '+esc(LERR):' — loading…'))+' · <button class="back" style="padding:0;font-size:12px" onclick="loadLive()">Refresh</button> · auto 60s</p>';
+if(!PAN){el.innerHTML=h+'<div class="mut">Loading bots…</div></div>';return}
+var B=PAN.find(x=>x.name===SEL);
+if(B){var L2=LIVE&&LIVE.bots.find(x=>x.name.toLowerCase()==B.name.toLowerCase()),S2=HUB.bots.find(x=>x.name.toLowerCase()==B.name.toLowerCase()),n2=cnt(B);
+var lb2=L2&&L2.heartbeat&&L2.heartbeat.lastBeat?L2.heartbeat.lastBeat:(S2&&S2.last?S2.last.ts:null);
+h+='<button class="back" onclick="pick(null)">← All bots</button><div class="bot dv"><div class="dvh"><div><div class="dvn">'+esc(B.name)+'</div><div class="dot">'+esc(grpOf(B.name))+'</div></div>'+(n2>0?'<span class="dvb">'+n2+'</span>':'')+'</div>';
+h+='<div class="ovs"><div><b>Last seen</b> '+(lb2?ago(lb2):'—')+(L2&&L2.heartbeat&&L2.heartbeat.note?' · <span class="mut">“'+esc(L2.heartbeat.note)+'”</span>':'')+'</div>'+(S2?'<div><b>Snapshot</b> '+esc(S2.fatigue)+' · Mistakes '+S2.mist.count+'</div><div><b>Role</b> '+esc(S2.role)+'</div>':'')+'</div>';
+if(B.leaveAlone)h+='<div class="mut">Leave-alone — no rewrite</div>';else[['Live','live'],['Task','task'],['Custom','custom']].forEach(x=>{var arr=(B[x[1]]||[]).filter(openRec);h+='<div class="lab">'+x[0]+' <span class="mut">('+arr.length+')</span></div>'+(arr.length?arr.map(rc).join(''):'<div class="mut" style="font-size:12px">None with evidence yet</div>')});
+el.innerHTML=h+'</div></div>';return}
+var lv={};if(LIVE)LIVE.bots.forEach(x=>lv[x.name.toLowerCase()]=x);var by={},ord=['Automotive','Financial','Emails','Coding','Management','Privacy'];
+PAN.forEach(b=>{var g=grpOf(b.name);(by[g]=by[g]||[]).push(b);if(ord.indexOf(g)<0)ord.push(g)});
+ord.forEach(g=>{if(!by[g])return;h+='<div class="grp">'+esc(g)+'</div><div class="tgrid">';by[g].forEach(b=>{var c=cnt(b),L=lv[b.name.toLowerCase()],S=HUB.bots.find(x=>x.name.toLowerCase()==b.name.toLowerCase());
+var lb=L&&L.heartbeat&&L.heartbeat.lastBeat?L.heartbeat.lastBeat:(S&&S.last?S.last.ts:null);
+var seen=lb?'Last seen '+ago(lb):'Last seen —';
+var tip=(g==='Automotive'&&b.live&&b.live[0]&&b.live[0].title)?b.live[0].title:'';
+var snap=tip?tip:(S?(g==='Automotive'?(S.role+' · '+S.fatigue.split(' — ')[0]+' · Mistakes '+S.mist.count):(S.fatigue.split(' — ')[0]+' · Mistakes '+S.mist.count+' · '+S.role)):'');
+h+='<div class="bottile'+(b.leaveAlone?' la':'')+(tip?' upd':'')+'" role="link" tabindex="0" data-bot="'+esc(b.name)+'"><span>'+esc(b.name)+'</span><span class="bsub">'+esc(seen)+(b.leaveAlone?' · Leave-alone':' · Live '+(b.live||[]).filter(openRec).length+' · Task '+(b.task||[]).filter(openRec).length+' · Custom '+(b.custom||[]).filter(openRec).length)+'</span><span class="bsnap">'+(tip?'<b style="color:#DAC5AC;font-weight:600">LIVE · </b>':'')+esc(snap)+'</span>'+(c>0?'<span class="badge">'+c+'</span>':'')+'</div>'});h+='</div>'});
+el.innerHTML=h+'</div>'}
+</script><script>var CONNECTIONS={"as_of": "2026-10-30T01:12:00-04:00", "items": [{"name": "Live Tennis", "status": "connected", "tools": 25, "kind": "connector"}, {"name": "Apify", "status": "connected", "tools": 16, "kind": "dual"}, {"name": "Composio", "status": "connected", "tools": 11, "kind": "connector"}, {"name": "Shadcn", "status": "connected", "tools": 7, "kind": "dual"}, {"name": "Vercel", "status": "connected", "tools": 238, "kind": "dual"}, {"name": "GitLab", "status": "connected", "tools": 42, "kind": "dual"}, {"name": "Browser-use", "status": "connected", "tools": 2, "kind": "dual"}, {"name": "Sentry", "status": "connected", "tools": 14, "kind": "dual"}, {"name": "Adapter", "status": "needsAuth", "tools": null, "kind": "connector", "plugin_id": "70141458", "auth_mode": "oauth", "hint": "Opens Grok Bot auth for Adapter (OAuth / connect card)."}, {"name": "Gmail", "status": "connected", "tools": 25, "kind": "connector"}, {"name": "Google-drive", "status": "connected", "tools": 22, "kind": "connector"}, {"name": "Google-calendar", "status": "connected", "tools": 15, "kind": "connector"}, {"name": "Slack", "status": "connected", "tools": 26, "kind": "connector"}, {"name": "Notion", "status": "connected", "tools": 68, "kind": "connector"}, {"name": "X", "status": "connected", "tools": 99, "kind": "connector"}, {"name": "Google-docs", "status": "connected", "tools": 19, "kind": "connector"}, {"name": "Figma", "status": "connected", "tools": 42, "kind": "connector"}, {"name": "Linear", "status": "connected", "tools": 69, "kind": "connector"}, {"name": "Zapier", "status": "connected", "tools": 17, "kind": "connector"}, {"name": "Canva", "status": "connected", "tools": 49, "kind": "connector"}, {"name": "Todoist", "status": "connected", "tools": 47, "kind": "connector"}, {"name": "Resend", "status": "connected", "tools": 139, "kind": "connector"}, {"name": "Gamma", "status": "connected", "tools": 21, "kind": "connector"}, {"name": "Airtable", "status": "connected", "tools": 54, "kind": "connector"}, {"name": "Onedrive", "status": "connected", "tools": 9, "kind": "connector"}, {"name": "Sanity", "status": "connected", "tools": 60, "kind": "connector"}, {"name": "Inkbox", "status": "connected", "tools": 90, "kind": "connector"}, {"name": "Linq", "status": "connected", "tools": 2, "kind": "connector"}, {"name": "Outlook", "status": "needsAuth", "tools": null, "kind": "connector", "plugin_id": "57302029", "auth_mode": "oauth", "hint": "Opens Grok Bot auth for Outlook (OAuth / connect card)."}, {"name": "Wonder", "status": "connected", "tools": 41, "kind": "connector"}, {"name": "Mobbin", "status": "connected", "tools": 8, "kind": "connector"}, {"name": "Google-slides", "status": "connected", "tools": 25, "kind": "connector"}, {"name": "Asana", "status": "needsAuth", "tools": null, "kind": "connector", "plugin_id": "26107310", "auth_mode": "oauth", "hint": "Opens Grok Bot auth for Asana (OAuth / connect card)."}, {"name": "fleet-feed", "status": "connected", "tools": 4, "kind": "connector"}, {"name": "Finance", "status": "connected", "tools": 6, "kind": "connector"}, {"name": "GitHub", "status": "connected", "tools": 75, "kind": "dual"}, {"name": "Cursor CloudAgent", "status": "connected", "tools": null, "kind": "coding"}, {"name": "Shell", "status": "connected", "tools": null, "kind": "coding"}, {"name": "Vercel deploy", "status": "connected", "tools": null, "kind": "coding"}, {"name": "Grok Coding Agent terminal", "status": "connected", "tools": null, "kind": "coding", "hint": "Box launcher: /workspace/qa/overseer/tools/grok-coding-agent/bin/grok-code-agent \u2014 needs XAI_API_KEY from console.x.ai"}]};var CODESTACKS=[{"id": "grok-coding-agent-cli", "stack": "Grok Coding Agent terminal", "takes": ["Installed on Overseer box (Oct 30 2026); tidy home at tools/grok-coding-agent.", "8/8 tests pass.", "XAI_API_KEY still unset \u2014 get from console.x.ai.", "Mac install pending."], "code": "# Installed on Overseer box (Oct 30 2026)\n/workspace/qa/overseer/tools/grok-coding-agent/bin/grok-code-agent --cwd <project> \"task\"\n# Key: export XAI_API_KEY=... from https://console.x.ai\n# Real install: tools/cookbook/sdk/grok-coding-agent-cli (.venv)\n# Docs home: tools/grok-coding-agent/{README,STATUS,WHERE}.md"}, {"id": "gmail_count", "stack": "Gmail API exact message counts", "takes": ["resultSizeEstimate is approximate \u2014 paginate messages.list for exact counts.", "count walks every page and returns exact unique message IDs; omit estimate from receipts.", "Dry-run first; trash via batchModify; never trust a single-page estimate."], "code": "// Exact trash count \u2014 do NOT use resultSizeEstimate\nasync function exactCount(gmail, q) {\n  let count = 0, pageToken;\n  do {\n    const res = await gmail.users.messages.list({\n      userId: 'me', q, includeSpamTrash: true,\n      maxResults: 500, pageToken, fields: 'messages/id,nextPageToken'\n    });\n    count += (res.data.messages || []).length;\n    pageToken = res.data.nextPageToken;\n  } while (pageToken);\n  return count;\n}\n// Receipt only after: inbox + trash exact counts match wipe math"}, {"id": "airtable_dedupe", "stack": "Airtable transcript / event log dedupe", "takes": ["At-least-once delivery \u2014 dedupe on transaction number before insert.", "Find-first on dedupe key; Event Log for external event IDs.", "Checksum upsert + audit log with PII masking."], "code": "// Idempotent Agent 47 row: messageId is the dedupe key\nasync function writeLogRow(base, table, row) {\n  const key = String(row.messageId).toLowerCase().trim();\n  const found = await base(table).select({\n    filterByFormula: `{messageId} = '${key.replace(/'/g, \"\\\\'\")}'`,\n    maxRecords: 1\n  }).firstPage();\n  if (found.length) return { action: 'skip', id: found[0].id };\n  const created = await base(table).create([{ fields: { ...row, messageId: key } }]);\n  return { action: 'create', id: created[0].id };\n}"}, {"id": "plaid_finance", "stack": "Plaid / subscription / save-verify finance desk", "takes": ["Subscription pipeline with confidence scoring; never announce until sync confirms.", "Plaid Recurring + local ledger; write-back rules after verified calls.", "Agent skill reconciles Plaid + Gmail into subscriptions.yaml instead of re-deriving."], "code": "// Only announce \"saved\" after tool confirms \u2014 never after Auto-review block\nasync function saveRoutineVerified(updateFn, getFn, id, patch) {\n  const blocked = await updateFn(patch);\n  if (blocked?.blocked) return { ok: false, reason: 'auto-review' };\n  const got = await getFn(id);\n  if (!got || got.version === patch.expectVersion) {\n    // mismatch or missing \u2192 do not claim saved\n    if (!got || JSON.stringify(got.desired) !== JSON.stringify(patch.desired))\n      return { ok: false, reason: 'verify-mismatch', got };\n  }\n  return { ok: true, got };\n}"}, {"id": "mcp_observe", "stack": "MCP / agent fleet observability", "takes": ["record_call + get_stats + per-agent reports over stdio MCP.", "Prometheus tool latency/error metrics + OTel spans per invocation.", "Interceptor wraps MCP tools for p50/p95 and error rates."], "code": "// Wrap fleet-feed tool handlers with duration + error recording\nfunction auditWrap(name, fn, record) {\n  return async (args) => {\n    const t0 = Date.now();\n    try {\n      const out = await fn(args);\n      await record({ tool: name, ok: true, ms: Date.now() - t0 });\n      return out;\n    } catch (e) {\n      await record({ tool: name, ok: false, ms: Date.now() - t0, err: String(e) });\n      throw e;\n    }\n  };\n}"}, {"id": "pdf_fill", "stack": "PDF AcroForm fill (estimates / tags)", "takes": ["Load template, getForm, setText/check, save \u2014 JS everywhere.", "doctor \u2192 diff \u2192 fill \u2192 verify pipeline before delivery.", "Validate field names against template before batch fill."], "code": "import { PDFDocument } from 'pdf-lib';\nasync function fillEstimate(templateBytes, data) {\n  const doc = await PDFDocument.load(templateBytes);\n  const form = doc.getForm();\n  for (const [name, value] of Object.entries(data)) {\n    const field = form.getTextField(name);\n    field.setText(String(value));\n  }\n  // verify: every required key present\n  const missing = REQUIRED.filter(k => !data[k]);\n  if (missing.length) throw new Error('missing fields: ' + missing.join(','));\n  return doc.save();\n}"}, {"id": "privacy_optout", "stack": "Data-broker opt-out / privacy scan", "takes": ["Playwright YAML broker recipes; pause for CAPTCHA; status tracking.", "Local heuristic scan + guided human opt-outs with audit proof.", "Dry-run before live broker submission."], "code": "# Pseudocode: dry-run broker recipe, vault PII only\ndef run_optout(broker, person_vault_ref, dry_run=True):\n    recipe = load_yaml(f'recipes/{broker}.yaml')\n    fields = vault.read(person_vault_ref)  # never from chat sticky\n    if dry_run:\n        return recipe.plan(fields)  # no submit\n    return recipe.submit(fields)  # human CAPTCHA gate"}, {"id": "github_pr_gate", "stack": "BUILD \u2192 PR gate / Cloud Agent ships", "takes": ["Gate on PR state + mergeable; never merge without Approve signal.", "Issue \u2192 CA \u2192 PR \u2192 Overseer Approve/Flag before main."], "code": "# Gate: only merge after explicit Approve label/comment\ndef maybe_merge(pr):\n    if 'Approve' not in pr.labels and not pr.has_approve_comment:\n        return 'wait'\n    if pr.mergeable_state != 'clean':\n        return 'blocked'\n    return pr.merge(merge_method='squash')"}, {"id": "credit_dispute", "stack": "Credit dispute / collections math", "takes": ["Cite exact balance/date from bureau file; never invent figures.", "Rule-based amounts from synced source of truth before letter fill."], "code": "def dispute_amount(source_txns, claim):\n    matched = [t for t in source_txns if t.id == claim.txn_id]\n    if len(matched) != 1:\n        raise ValueError('no single source txn')\n    amt = matched[0].amount\n    assert abs(amt - claim.stated) < 0.01, 'figure mismatch'\n    return amt"}];
+var AVAILABLE={"as_of": "2026-10-30T00:27:00-04:00", "connectors": [{"name": "Google Sheets", "kind": "connector", "category": "Docs", "why": "Read/write shop and fleet spreadsheets", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=45893414"}, {"name": "SharePoint", "kind": "connector", "category": "Docs", "why": "Microsoft file libraries alongside OneDrive", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=64745996"}, {"name": "Dropbox", "kind": "connector", "category": "Docs", "why": "Search and save files without leaving Grok Bot", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=53761261"}, {"name": "Box", "kind": "connector", "category": "Docs", "why": "Enterprise file ops + Box AI", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=1092"}, {"name": "Atlassian", "kind": "connector", "category": "Work", "why": "Jira / Confluence for BUILD and ship tracking", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=717"}, {"name": "PagerDuty", "kind": "connector", "category": "Ops", "why": "Incidents and on-call for fleet alerts", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=1089"}, {"name": "Stripe", "kind": "connector", "category": "Money", "why": "Payments and billing tooling", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=408"}, {"name": "Mercury", "kind": "connector", "category": "Money", "why": "Banking spend and cash checks", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=56809980"}, {"name": "QuickBooks Online", "kind": "connector", "category": "Money", "why": "Invoices, A/R, business books", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=72272620"}, {"name": "Twilio", "kind": "connector", "category": "Comms", "why": "SMS / voice for shop and customer pings", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=9105"}, {"name": "WhatsApp Business", "kind": "connector", "category": "Comms", "why": "Customer messaging channel", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=75770130"}, {"name": "Tavily", "kind": "connector", "category": "Research", "why": "Web search and extract for deep scans", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=3165"}, {"name": "Context7", "kind": "connector", "category": "Coding", "why": "Up-to-date library docs into coding bots", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=73501007"}, {"name": "Cloudflare", "kind": "connector", "category": "Coding", "why": "Deploy and edge ops", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=407"}, {"name": "Railway", "kind": "connector", "category": "Coding", "why": "App deploy / monitor alternative to Vercel", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=29413143"}, {"name": "Neon Postgres", "kind": "connector", "category": "Coding", "why": "Serverless Postgres for bot data", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=669"}, {"name": "MongoDB", "kind": "connector", "category": "Coding", "why": "Document DB for fleet logs", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=3277"}, {"name": "Postman", "kind": "connector", "category": "Coding", "why": "API collections and CI checks", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=2050"}, {"name": "Chrome Devtools for Agents", "kind": "connector", "category": "Coding", "why": "Browser debug for Hub QA", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=21020287"}, {"name": "Excalidraw", "kind": "connector", "category": "Design", "why": "Quick architecture diagrams", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=63408930"}, {"name": "Miro", "kind": "connector", "category": "Design", "why": "Boards for roundtable planning", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=2911"}, {"name": "ElevenLabs", "kind": "connector", "category": "Media", "why": "Voice agents and TTS", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=56235003"}, {"name": "HeyGen", "kind": "connector", "category": "Media", "why": "Avatar / video generation", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=14372196"}, {"name": "Apollo.io", "kind": "connector", "category": "Sales", "why": "Lead enrich for outreach bots", "add": "https://cursor.com/grok-bot/link/v1/plugin/add?id=32704904"}], "code_stacks": [{"id": "stripe_webhooks", "stack": "Stripe webhook verify + receipt", "why": "Not baked yet \u2014 payments confirmations for Money Desk"}, {"id": "twilio_sms", "stack": "Twilio SMS send/receive receipts", "why": "Not baked yet \u2014 shop customer SMS"}, {"id": "sheets_sync", "stack": "Google Sheets row upsert", "why": "Not baked yet \u2014 Rafiki/Rafiki-style maps"}, {"id": "pagerduty_incident", "stack": "PagerDuty incident open/ack", "why": "Not baked yet \u2014 fleet red alerts"}]};
+var XWALK=[["coding|\\brepo\\b|refactor|\\bsdk\\b|cli agent", "Grok Coding Agent CLI", "grok-coding-agent-cli"], ["gmail|inbox|spam|wipe|simpleton", "Gmail", "gmail_count"], ["airtable|dedupe|agent 47 log", "Airtable", "airtable_dedupe"], ["finance|plaid|rothstein|money desk|budget", "Finance", "plaid_finance"], ["github|\\bpr\\b|pull request|\\brepo\\b", "GitHub", "github_pr_gate"], ["privacy|spokeo|broker|opt-out|whitepages", "Inkbox", "privacy_optout"], ["pdf|estimate|claims?\\b|\\bform\\b", "Google-drive", "pdf_fill"], ["dispute|bureau|credit", "Finance", "credit_dispute"], ["mcp|observe|fleet feed|loop", "fleet-feed", "mcp_observe"], ["slack", "Slack", ""], ["notion", "Notion", ""], ["calendar|routine|schedule", "Google-calendar", ""]];
+function xmatch(s){s=(s||'').toLowerCase();var o=[];XWALK.forEach(x=>{if(new RegExp(x[0]).test(s))o.push(x)});return o}
+function xline(r){var m=xmatch(r.title+' '+r.detail);if(!m.length)return '';return '<div class="xref" data-xref="1">Connect: '+esc(m.map(x=>x[1]+(x[2]?' · code stack '+x[2]:'')).join(' | '))+'</div>'}
+function slug(n){return String(n||'').replace(/[^a-zA-Z0-9_-]/g,'_')}
+function tokKey(n){return 'fh-conn-token:'+n}
+function loadTok(n){try{return localStorage.getItem(tokKey(n))||''}catch(e){return ''}}
+function saveTok(n,v){try{if(v)localStorage.setItem(tokKey(n),v);else localStorage.removeItem(tokKey(n))}catch(e){}}
+
+var CONN_AUTH=null,CONN_STATUS={};
+function loadConnAuth(){return fetch('/api/conn-token',{cache:'no-store'}).then(r=>r.json()).then(j=>{CONN_AUTH=(j&&j.auth)||{};(j.items||[]).forEach(function(x){var prev=PREV_CONN[x.service]||CONN_STATUS[x.service];var st=x.has_token?'connected':'needs auth';var pst=prev?(prev.has_token?'connected':'needs auth'):null;if(pst&&pst!==st)pushAct('connector',(x.service||'Connector')+': '+st,'Auth status changed');PREV_CONN[x.service]=x;CONN_STATUS[x.service]=x});if(window.renderConn)renderConn()}).catch(()=>{})}
+var AUTH_BAKED={"Asana":{"open":"https://app.asana.com/0/my-apps","plugin":"https://cursor.com/grok-bot/link/v1/plugin/add?id=26107310"},"Outlook":{"open":"https://account.microsoft.com/","plugin":"https://cursor.com/grok-bot/link/v1/plugin/add?id=57302029"},"Adapter":{"open":"https://cursor.com/grok-bot/link/v1/plugin/add?id=70141458","plugin":"https://cursor.com/grok-bot/link/v1/plugin/add?id=70141458"}};
+function authUrl(n){var a=AUTH_BAKED[n]||(CONN_AUTH&&CONN_AUTH[n])||null;if(a)return a.plugin||a.open;var it=(CONNECTIONS.items||[]).find(x=>x.name==n);if(it&&it.plugin_id)return 'https://cursor.com/grok-bot/link/v1/plugin/add?id='+it.plugin_id;return 'https://cursor.com/grok-bot/link/v1/marketplace?tab=plugins'}
+function startAuth(n){var url=authUrl(n);var s=document.getElementById('ast-'+slug(n));
+if(s)s.textContent='Opening authorization for '+n+'… If nothing opened, tap "Open auth page".';
+var w=null;try{w=window.open(url,'_blank','noopener')}catch(e){w=null}
+if(!w){try{location.href=url}catch(e){}}
+}
+function connAddedLS(){try{return JSON.parse(localStorage.fhConnAdded||'[]')}catch(e){return []}}
+function mergeAdded(names){var ch=false;(names||[]).forEach(function(n){if(!n)return;var it=CONNECTIONS.items.find(x=>x.name==n);if(!it){CONNECTIONS.items.push({name:n,status:'connected',tools:null,kind:'connector',added:true});ch=true}else if(it.status!='connected'&&it.added){it.status='connected';ch=true}var i=AVAILABLE.connectors.findIndex(x=>x.name==n);if(i>=0){AVAILABLE.connectors.splice(i,1);ch=true}});return ch}
+function addAvailable(name,btn){var x=AVAILABLE.connectors.find(c=>c.name==name)||AVAILABLE.code_stacks.find(c=>c.stack==name||c.id==name);if(btn){btn.disabled=true;btn.textContent='Adding…'}
+fetch('/api/connect/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:name,kind:(x&&x.kind)||'connector',add_url:x&&x.add,category:x&&x.category,why:x&&x.why})}).then(r=>r.json().then(j=>({ok:r.ok,j}))).then(function(o){
+ if(!o.ok||!o.j.ok)throw new Error(o.j.error||o.j.message||'add failed');
+ var l=connAddedLS();if(l.indexOf(name)<0){l.push(name);localStorage.fhConnAdded=JSON.stringify(l)}
+ mergeAdded([name]);renderConn();toast('Added '+name)}).catch(function(e){if(btn){btn.disabled=false;btn.textContent='Add'}toast('Add failed — '+e.message)})}
+function loadAdded(){var ch=mergeAdded(connAddedLS());fetch('/api/connect/add',{cache:'no-store'}).then(r=>r.json()).then(j=>{if(j&&j.items&&mergeAdded(j.items.map(i=>i.name)))renderConn()}).catch(()=>{});return ch}
+loadAdded();
+document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-add-name]');if(b){e.preventDefault();addAvailable(b.getAttribute('data-add-name'),b)}});
+function toggleTok(n){var d=document.getElementById('auth-'+slug(n));if(d)d.open=!d.open}
+function saveAuthToken(n){var inp=document.getElementById('tok-'+slug(n));if(!inp)return;var v=(inp.value||'').trim();var s=document.getElementById('ast-'+slug(n));
+if(!v){if(s)s.textContent='Paste a token first.';return}
+if(s)s.textContent='Validating with '+n+' and saving server-side…';
+fetch('/api/conn-token',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({service:n,token:v})}).then(r=>r.json().then(j=>({ok:r.ok,j}))).then(({ok,j})=>{
+ if(ok&&j.ok){inp.value='';if(s)s.textContent='Saved server-side for '+n+(j.account_hint?' · '+j.account_hint:'')+'. Token is not kept in this page.';CONN_STATUS[n]={service:n,status:'valid',account_hint:j.account_hint,has_token:true};renderConn()}
+ else{if(s)s.textContent='Not saved — '+(j.error||j.message||'validation failed')}}).catch(e=>{if(s)s.textContent='Save failed — '+e})}
+
+
+function clearGrokTerm(){var i=document.getElementById('grok-term-in'),o=document.getElementById('grok-term-out');if(i)i.value='';if(o)o.innerHTML='<span class="dim">Ready. Type a coding task and press Enter.</span>';if(i)i.focus()}
+function bindGrokTerm(){var i=document.getElementById('grok-term-in');if(!i)return;if(i._bound)return;i._bound=1;i.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();runGrokTerm()}})}
+async function runGrokTerm(){var i=document.getElementById('grok-term-in'),o=document.getElementById('grok-term-out'),b=document.getElementById('grok-term-run');if(!i||!o)return;var prompt=(i.value||'').trim();if(!prompt){o.innerHTML='<span class="err">Type a prompt first.</span>';return}if(b)b.disabled=true;o.innerHTML='<span class="dim">Running…</span>';try{var r=await fetch('/api/grok-term',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt})});var j=await r.json().catch(function(){return{}});if(!r.ok){o.innerHTML='<span class="err">'+(j.message||j.error||('HTTP '+r.status))+'</span>';return}var out=j.output||'(empty)';o.textContent=out;pushAct('terminal','Grok coder ran',prompt.slice(0,140)+(out&&out!=='(empty)'?(' → '+String(out).slice(0,160)):''),'');if(j.note){var d=document.createElement('div');d.className='dim';d.style.marginTop='8px';d.textContent=j.note;o.appendChild(d)}}catch(e){pushAct('terminal','Grok coder error',String(e.message||e),'');o.innerHTML='<span class="err">'+String(e.message||e)+'</span>'}finally{if(b)b.disabled=false}}
+function renderConn(){var el=document.getElementById('connv');if(!el||el.hidden)return;var I=CONNECTIONS.items,ok=I.filter(x=>x.status=='connected'),na=I.filter(x=>x.status!='connected');
+var h='<p class="meta">Snapshot '+new Date(CONNECTIONS.as_of).toLocaleString('en-US',{timeZone:'America/New_York',dateStyle:'medium',timeStyle:'short'})+' ET</p>';
+h+='<div class="monc"><div class="mn">Overview</div><div class="mr">'+ok.length+' connected · '+na.length+' need auth · '+CODESTACKS.length+' code stacks · '+(AVAILABLE.connectors.length+AVAILABLE.code_stacks.length)+' available to add</div></div>';
+function row(x){return '<div class="crow"><span>'+esc(x.name)+(x.kind!='connector'?' <span class="mut2">('+x.kind+')</span>':'')+(x.hint?'<div class="mut2" style="white-space:normal;overflow-wrap:anywhere">'+esc(x.hint)+'</div>':'')+'</span><span>'+(x.tools!=null?x.tools+' tools ':'')+'<span class="cpl'+(x.status=='connected'?'':' na')+'">'+(x.status=='connected'?'Connected':'Needs auth')+'</span></span></div>'}
+function authRow(x){var id=slug(x.name),jq=JSON.stringify(x.name),has=!!(CONN_STATUS[x.name]&&CONN_STATUS[x.name].has_token);var st=CONN_STATUS[x.name];return '<div class="crow auth"><div class="crowtop"><span>'+esc(x.name)+'</span><span class="cpl na">Needs auth</span></div><div class="mut2">'+esc(x.hint||'Authorize this connector from Grok Bot, or paste a token below.')+'</div><div class="ath"><button type="button" class="abtn" onclick="startAuth('+jq+')">Start OAuth / connect</button><a class="abtn sec" href="'+esc(authUrl(x.name))+'" target="_blank" rel="noopener">Open auth page</a><button type="button" class="abtn sec" onclick="toggleTok('+jq+')">Paste token</button><details id="auth-'+id+'"><summary class="mut2">Token / API key</summary><input id="tok-'+id+'" type="password" autocomplete="off" placeholder="'+(has?'Paste to replace server token':'Paste token or API key')+'" /><button type="button" class="abtn" style="margin-top:8px" onclick="saveAuthToken('+jq+')">Save on this device</button></details><div class="ast" id="ast-'+id+'">'+(has?('Server token on file'+(st&&st.account_hint?' · '+esc(st.account_hint):'')+(st&&st.status?' · '+st.status:'')):'No server token yet — paste below or Start OAuth.')+'</div></div></div>'}
+function sec(id,title,count,body,open){return '<details class="csec" id="'+id+'"'+(open?' open':'')+'><summary><span>'+title+'</span><span class="cnt">'+count+'</span><span class="chev">▾</span></summary><div class="cbody">'+body+'</div></details>'}
+var tb='<div class="gterm"><div class="gterm-head"><span class="ttl">Grok coding terminal</span><span class="live">ready</span></div><div class="gterm-out" id="grok-term-out"><span class="dim">Ready. Type a coding task and press Enter.</span></div><div class="gterm-row"><span class="prompt">›</span><textarea id="grok-term-in" rows="1" placeholder="Ask Grok to write, fix, or explain code…" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea><button type="button" id="grok-term-run" onclick="runGrokTerm()">Run</button><button type="button" class="ghost" onclick="clearGrokTerm()">Clear</button></div></div>';
+h+=sec('sec-terminal','Terminal',1,tb,true);
+h+=sec('sec-connected','Connected',ok.length,ok.map(row).join(''),false);
+h+=sec('sec-auth','Needs auth',na.length,na.map(authRow).join(''),true);
+var stackBody=CODESTACKS.map(s=>'<div class="crow stk"><div class="mn">'+esc(s.stack)+'</div><div class="mr">'+esc(s.id)+'</div>'+s.takes.map(t=>'<div class="mut2">• '+esc(t)+'</div>').join('')+(s.code?'<details><summary class="mut2">Snippet</summary><pre>'+esc(s.code)+'</pre></details>':'')+'</div>').join('');
+h+=sec('sec-stacks','Code stacks',CODESTACKS.length,stackBody,false);
+function qa(v){return esc(v).replace(/"/g,'&quot;')}
+var ac='<div class="alist">'+AVAILABLE.connectors.map(x=>'<div class="crow aadd"><div class="crowtop"><span>'+esc(x.name)+' <span class="mut2">'+esc(x.category||'')+'</span></span><button type="button" class="abtn add" data-add-name="'+qa(x.name)+'">Add</button></div><div class="mut2">'+esc(x.why)+'</div></div>').join('')+'</div>';
+var as='<div class="alist">'+AVAILABLE.code_stacks.map(x=>'<div class="crow aadd"><div class="crowtop"><span>'+esc(x.stack)+' <span class="mut2">'+esc(x.id)+' · proposed</span></span>'+(x.add?'<a class="abtn sec" href="'+qa(x.add)+'" target="_blank" rel="noopener">Source</a>':'')+'</div><div class="mut2">'+esc(x.why)+'</div></div>').join('')+'</div>';
+h+=sec('sec-available','Available to add',AVAILABLE.connectors.length+AVAILABLE.code_stacks.length,'<div class="mut2" style="margin-bottom:8px">Connectors and code stacks not on this fleet yet — catalog to grow from.</div><div class="grp" style="margin:8px 0 4px">Connectors ('+AVAILABLE.connectors.length+')</div>'+ac+'<div class="grp" style="margin:12px 0 4px">Code stacks to bake ('+AVAILABLE.code_stacks.length+')</div>'+as,false);
+h+='<div class="grp">Pulled for Improve — these Improve items can pull from here</div>';var by={};(PAN||[]).forEach(b=>{if(b.leaveAlone)return;['live','task','custom'].forEach(k=>(b[k]||[]).forEach(r=>{xmatch(r.title+' '+r.detail).forEach(x=>{var key=x[1]+(x[2]?' · '+x[2]:'');(by[key]=by[key]||[]).push(b.name+': '+r.title)})}))});
+var ks=Object.keys(by);if(!PAN)h+='<div class="monc mut2">Loading Improve…</div>';else if(!ks.length)h+='<div class="monc mut2">No Improve matches.</div>';ks.forEach(k=>{h+='<div class="monc" data-pulled="1"><div class="mn">'+esc(k)+' <span class="mut2">('+by[k].length+')</span></div>'+by[k].slice(0,8).map(s=>'<div class="mut2">• '+esc(s)+'</div>').join('')+'</div>'});
+el.innerHTML=h;bindGrokTerm()}
+</script><script>
+
+function toast(msg){var t=document.getElementById('toast');if(!t)return;t.textContent=msg;setTimeout(function(){t.textContent=''},2200)}
+function openNewPill(){var m=document.getElementById('newmodal');if(!m)return;m.hidden=false;resetBuildGuide(true);var ta=document.getElementById('newtxt');if(ta){ta.value='';setTimeout(function(){ta.focus()},50)}}
+function closeNewPill(){var m=document.getElementById('newmodal');if(m)m.hidden=true;resetBuildGuide(true)}
+function copyAndGo(payload,toastMsg,href){
+  var go=function(){closeNewPill();toast(toastMsg);location.href=href};
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(payload).then(go).catch(function(){try{var a=document.createElement('textarea');a.value=payload;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove()}catch(e){} go()});
+  } else {try{var a=document.createElement('textarea');a.value=payload;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove()}catch(e){} go()}
+}
+function submitNew(kind){
+  var ta=document.getElementById('newtxt');var t=(ta&&ta.value||'').trim();
+  if(kind==='build'){startBuildGuide();return}
+  if(!t){toast('Type something first');return}
+  copyAndGo('Fleet Hub ask: '+t,'Copied — opening Overseer','grokbot://app/v1/agent?id=de6f1df0-c4c5-4793-9b8d-0be3735b3da9');
+}
+var GUIDE_USE={
+  monitor:[['site','A website or dashboard'],['inbox','An inbox or thread'],['fleet','Fleet Hub / bot health'],['shop','Shop board or appointments'],['custom','Something else']],
+  automate:[['report','Daily report or digest'],['cleanup','Cleanup / filing'],['handoff','Handoff between bots'],['forms','Forms or claims'],['custom','Something else']],
+  answer:[['fleet','Fleet / bot questions'],['shop','Shop / Volvo questions'],['personal','Personal / home'],['research','Web research'],['custom','Something else']],
+  inbox:[['gmail','Gmail triage'],['slack','Slack / chat'],['customer','Customer replies'],['custom','Something else']],
+  money:[['debts','Debts / disputes'],['refunds','Refunds / lost funds'],['claims','Warranty / JM&A claims'],['budget','Budget / subscriptions'],['custom','Something else']],
+  shop:[['appointments','Appointments / TIE'],['estimates','Estimates'],['parts','Parts / ETAs'],['alignment','Alignment / HunterNet'],['custom','Something else']],
+  code:[['ship','Ship a new bot'],['fix','Fix or patch code'],['review','Review a change'],['custom','Something else']],
+  custom:[['fleet','Fleet ops'],['shop','Automotive'],['personal','Personal'],['coding','Coding'],['other','Other']]
+};
+var GUIDE_NEED_L={monitor:'Watch or monitor',automate:'Automate a repeating task',answer:'Answer questions / research',inbox:'Handle email or messages',money:'Track money, deals, or claims',shop:'Shop / automotive ops',code:'Coding or ship intake',custom:'Custom bot'};
+var GUIDE_OFTEN_L={ondemand:'on demand when asked',hourly:'about hourly',daily:'once a day',weekdays:'weekdays during shop hours',always:'as an always-on watcher'};
+function startBuildGuide(){
+  try{
+    var modal=document.getElementById('newmodal');if(modal)modal.hidden=false;
+    var box=document.getElementById('newmodalbox');if(!box){toast('Build UI missing');return}
+    box.classList.add('build-mode');
+    var t=document.getElementById('newmodaltitle'),b=document.getElementById('newmodalblurb');
+    if(t)t.textContent='Build a bot';
+    if(b)b.textContent='Use the dropdowns — no typing needed. Grok will suggest tweaks before create.';
+    var panel=document.getElementById('new-build-panel');
+    if(panel){panel.style.display='block'}
+    var ask=document.getElementById('new-ask-row');if(ask)ask.style.display='none';
+    var ta=document.getElementById('newtxt');if(ta){ta.value='';ta.style.display='none'}
+    var needStep=document.getElementById('gstep-need');if(needStep){needStep.classList.add('on');needStep.style.display='block'}
+    onGuideChange();
+  }catch(err){try{toast('Build error: '+(err&&err.message||err))}catch(e){} console&&console.error&&console.error(err)}
+}
+function bindNewModalButtons(){
+  var buildBtn=document.querySelector('#new-ask-row .btn.sec');
+  if(buildBtn&&!buildBtn._boundBuild){buildBtn._boundBuild=1;buildBtn.addEventListener('click',function(e){e.preventDefault();startBuildGuide()})}
+  var askBtn=document.querySelector('#new-ask-row .btn.pri');
+  if(askBtn&&!askBtn._boundAsk){askBtn._boundAsk=1;askBtn.addEventListener('click',function(e){e.preventDefault();submitNew('ask')})}
+}
+function resetBuildGuide(silent){
+  var box=document.getElementById('newmodalbox');if(box)box.classList.remove('build-mode');
+  var t=document.getElementById('newmodaltitle'),b=document.getElementById('newmodalblurb');
+  if(t)t.textContent='Start something new';
+  if(b)b.textContent='Ask Grok in the text box, or Build a bot with dropdowns only.';
+  ['g-need','g-use','g-often'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=''});
+  var use=document.getElementById('g-use');if(use)use.innerHTML='<option value="">Choose…</option>';
+  ['gstep-use','gstep-often','gstep-preview'].forEach(function(id){var el=document.getElementById(id);if(el)el.classList.remove('on')});
+  var btn=document.getElementById('g-create');if(btn)btn.disabled=true;
+  var ref=document.getElementById('g-refresh-rec');if(ref)ref.disabled=true;
+  var prev=document.getElementById('g-preview');if(prev)prev.textContent='';
+  var adj=document.getElementById('g-adjust');if(adj)adj.value='';
+  var recs=document.getElementById('g-recs');if(recs)recs.innerHTML='';
+  var st=document.getElementById('g-rec-status');if(st)st.textContent='Finish step 3 and Grok will suggest a couple of tweaks.';
+  window._guideRecs=[];window._guideRecKey='';
+  var panel=document.getElementById('new-build-panel');if(panel)panel.style.display='';
+  var ask=document.getElementById('new-ask-row');if(ask)ask.style.display='';
+  var ta=document.getElementById('newtxt');if(ta)ta.style.display='';
+  var needStep=document.getElementById('gstep-need');if(needStep)needStep.style.display='';
+}
+function onNewTxtInput(){/* Ask Grok text box only — build uses dropdowns */}
+function onGuideChange(){
+  var need=(document.getElementById('g-need')||{}).value||'';
+  var useEl=document.getElementById('g-use');
+  var useStep=document.getElementById('gstep-use');
+  var oftenStep=document.getElementById('gstep-often');
+  var prevStep=document.getElementById('gstep-preview');
+  var btn=document.getElementById('g-create');
+  var ref=document.getElementById('g-refresh-rec');
+  if(!need){if(useStep)useStep.classList.remove('on');if(oftenStep)oftenStep.classList.remove('on');if(prevStep)prevStep.classList.remove('on');if(btn)btn.disabled=true;if(ref)ref.disabled=true;return}
+  if(useStep)useStep.classList.add('on');
+  var opts=GUIDE_USE[need]||GUIDE_USE.custom;
+  var cur=useEl.value;
+  var keep=opts.some(function(o){return o[0]===cur});
+  useEl.innerHTML='<option value="">Choose…</option>'+opts.map(function(o){return '<option value="'+o[0]+'">'+(o[1].replace(/</g,'&lt;'))+'</option>'}).join('');
+  if(keep)useEl.value=cur;
+  var use=useEl.value;
+  if(!use){if(oftenStep)oftenStep.classList.remove('on');if(prevStep)prevStep.classList.remove('on');if(btn)btn.disabled=true;if(ref)ref.disabled=true;return}
+  if(oftenStep)oftenStep.classList.add('on');
+  var often=(document.getElementById('g-often')||{}).value||'';
+  if(!often){if(prevStep)prevStep.classList.remove('on');if(btn)btn.disabled=true;if(ref)ref.disabled=true;return}
+  if(prevStep)prevStep.classList.add('on');
+  if(ref)ref.disabled=false;
+  refreshGuidePreview();
+  var key=need+'|'+use+'|'+often;
+  if(window._guideRecKey!==key){window._guideRecKey=key;window._guideRecs=[];fetchGuideRecs(false)}
+  else {renderGuideRecs();refreshGuidePreview();if(btn)btn.disabled=false}
+}
+function localGuideRecs(need,use,often){
+  var recs=[];
+  if(need==='monitor'){recs.push('Add a quiet alert only when status changes — skip noisy heartbeats.');recs.push('Keep a short rolling log of the last 10 signals for debugging.');}
+  if(need==='automate'){recs.push('Start with a dry-run mode that drafts results for you before auto-acting.');recs.push('Include a weekday-only guard so weekends stay quiet unless you say otherwise.');}
+  if(need==='answer'){recs.push('Cite sources in one line so answers stay verifiable.');recs.push('Prefer vault/connectors you already have over asking for new credentials.');}
+  if(need==='inbox'){recs.push('Never auto-send — draft only unless you explicitly approve.');recs.push('Separate junk wipe from real customer threads so nothing important is deleted.');}
+  if(need==='money'){recs.push('Log every figure with a source date so stale balances don’t get trusted.');recs.push('Surface next action + due date on every open item.');}
+  if(need==='shop'){recs.push('Key every task to VIN + RO when available.');recs.push('Stay clear of the leave-alone shop bots; hand off instead of duplicating them.');}
+  if(need==='code'){recs.push('Ship a minimal first version, then iterate from a short acceptance checklist.');recs.push('Write changes only in the scoped repo paths you name — no drive-by refactors.');}
+  if(need==='custom'){recs.push('Write a one-sentence success check so the bot knows when it’s done.');recs.push('Default to ask-before-act for anything that sends, spends, or deletes.');}
+  if(often==='always'||often==='hourly')recs.push('Cap how often it pings you — batch updates unless something is actually broken.');
+  if(often==='ondemand')recs.push('Open with a short menu of the three most common asks so you don’t re-explain.');
+  if(use==='fleet')recs.push('Ignore leave-alone bots (Rafiki, Wokanda, Toto, Raj, MK4 Master, Pepe) in every list and alert.');
+  // unique, max 3
+  var out=[],seen={};recs.forEach(function(r){if(!seen[r]&&out.length<3){seen[r]=1;out.push(r)}});
+  while(out.length<2)out.push('Keep replies short and lead with the answer.');
+  return out.slice(0,3);
+}
+function fetchGuideRecs(force){
+  var need=(document.getElementById('g-need')||{}).value||'';
+  var use=(document.getElementById('g-use')||{}).value||'';
+  var often=(document.getElementById('g-often')||{}).value||'';
+  if(!need||!use||!often)return;
+  var st=document.getElementById('g-rec-status');
+  var box=document.getElementById('g-recs');
+  var btn=document.getElementById('g-create');
+  var ref=document.getElementById('g-refresh-rec');
+  if(st)st.textContent='Grok is suggesting tweaks…';
+  if(box)box.innerHTML='';
+  if(btn)btn.disabled=true;
+  if(ref)ref.disabled=true;
+  var useLab='';(GUIDE_USE[need]||[]).forEach(function(o){if(o[0]===use)useLab=o[1]});
+  var prompt='Fleet Hub bot-builder. Martin is creating a bot.\\nNeed: '+(GUIDE_NEED_L[need]||need)+'\\nUsed for: '+(useLab||use)+'\\nCadence: '+(GUIDE_OFTEN_L[often]||often)+'\\nSuggest exactly 3 short improvements (one sentence each) to make this bot better. No preamble, no numbering words like Tip — just 3 lines. Never mention or modify leave-alone bots Rafiki, Wokanda, Toto, Raj, MK4 Master, Pepe except to say stay clear of them if relevant.';
+  var fallback=localGuideRecs(need,use,often);
+  var apply=function(list,src){
+    window._guideRecs=(list||fallback).slice(0,3).map(function(t,i){return{id:'r'+i,text:String(t).replace(/^\\s*\\d+[.)-]\\s*/,'').trim(),on:true}});
+    if(st)st.textContent=src==='grok'?'Pick what to keep, edit below, then create.':'Offline tips — pick what to keep, then create.';
+    renderGuideRecs();refreshGuidePreview();
+    if(btn)btn.disabled=false;if(ref)ref.disabled=false;
+  };
+  fetch('/api/grok-term',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt})}).then(function(r){return r.json().then(function(j){return{ok:r.ok,j:j}})}).then(function(x){
+    if(!x.ok||!x.j||!x.j.output){apply(fallback,'local');return}
+    var lines=String(x.j.output).split(/\\n+/).map(function(s){return s.trim()}).filter(Boolean).filter(function(s){return !/^(here|sure|i'd|i suggest)/i.test(s)}).slice(0,3);
+    if(lines.length<2)apply(fallback,'local');else apply(lines,'grok');
+  }).catch(function(){apply(fallback,'local')});
+}
+function renderGuideRecs(){
+  var box=document.getElementById('g-recs');if(!box)return;
+  var recs=window._guideRecs||[];
+  if(!recs.length){box.innerHTML='';return}
+  box.innerHTML='';
+  recs.forEach(function(r){
+    var lab=document.createElement('label');
+    if(r.on)lab.className='on';
+    var inp=document.createElement('input');
+    inp.type='checkbox';
+    inp.checked=!!r.on;
+    inp.setAttribute('data-rid',r.id);
+    inp.addEventListener('change',function(){toggleGuideRec(r.id,inp.checked)});
+    var sp=document.createElement('span');
+    sp.textContent=r.text||'';
+    lab.appendChild(inp);lab.appendChild(sp);
+    box.appendChild(lab);
+  });
+}
+function toggleGuideRec(id,on){(window._guideRecs||[]).forEach(function(r){if(r.id===id)r.on=!!on});renderGuideRecs();refreshGuidePreview()}
+function onRecAdjust(){refreshGuidePreview()}
+function selectedGuideRecs(){return(window._guideRecs||[]).filter(function(r){return r.on}).map(function(r){return r.text})}
+function refreshGuidePreview(){var prev=document.getElementById('g-preview');if(prev)prev.textContent=buildGuidedBrief();var btn=document.getElementById('g-create');if(btn){var n=(document.getElementById('g-need')||{}).value,u=(document.getElementById('g-use')||{}).value,o=(document.getElementById('g-often')||{}).value;btn.disabled=!(n&&u&&o&&(window._guideRecs||[]).length)}}
+function buildGuidedBrief(){
+  var need=(document.getElementById('g-need')||{}).value||'';
+  var use=(document.getElementById('g-use')||{}).value||'';
+  var often=(document.getElementById('g-often')||{}).value||'';
+  var adj=(document.getElementById('g-adjust')&&document.getElementById('g-adjust').value||'').trim();
+  var useLab='';
+  (GUIDE_USE[need]||[]).forEach(function(o){if(o[0]===use)useLab=o[1]});
+  var nameHint={monitor:'Watcher',automate:'Automator',answer:'Researcher',inbox:'Inbox desk',money:'Money desk',shop:'Shop desk',code:'Coder',custom:'Custom bot'}[need]||'Custom bot';
+  var lines=[];
+  lines.push('SHIP: Create a customized Grok Bot named roughly "'+nameHint+'".');
+  lines.push('Need: '+(GUIDE_NEED_L[need]||need)+'.');
+  lines.push('Used for: '+(useLab||use)+'.');
+  lines.push('Cadence: '+(GUIDE_OFTEN_L[often]||often)+'.');
+  var picks=selectedGuideRecs();
+  if(picks.length){lines.push('Accepted Grok tweaks:');picks.forEach(function(t,i){lines.push((i+1)+'. '+t)})}
+  if(adj)lines.push('Owner adjustments: '+adj);
+  lines.push('Keep it short, practical, and scoped. Do not modify or surface the leave-alone bots (Rafiki, Wokanda, Toto, Raj, MK4 Master, Pepe).');
+  return lines.join('\\n');
+}
+function submitGuidedBot(){
+  var need=(document.getElementById('g-need')||{}).value;
+  var use=(document.getElementById('g-use')||{}).value;
+  var often=(document.getElementById('g-often')||{}).value;
+  if(!need||!use||!often){toast('Finish the three steps first');return}
+  if(!(window._guideRecs||[]).length){toast('Wait for Grok tips first');fetchGuideRecs(true);return}
+  var payload=buildGuidedBrief();
+  copyAndGo(payload,'Copied brief — opening Ship Intake','grokbot://app/v1/agent?id=9a934c79-c6bb-4fb0-b34e-e4c3627c7ffb');
+}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeNewPill()});
+
+function route(){var h=location.hash.slice(1),wantTerm=h==='connect-term';if(wantTerm)h='connect';var p={improve:["Improve","Evidence-gated upgrades"],hub:["Hub","Live monitoring"],monitor:["Monitor","Self-healing watch"],connect:["Connect","Connections & coding"]}[h];
+document.getElementById('landing').hidden=!!p;document.getElementById('inner').hidden=!p;
+if(p){document.getElementById('ititle').textContent=p[0];document.getElementById('isub').textContent=p[1];}
+var hb=h==='hub',mo=h==='monitor',cn=h==='connect';document.getElementById('icard').hidden=hb||mo||cn;document.getElementById('connv').hidden=!cn;document.getElementById('hubv').hidden=!hb;document.getElementById('monv').hidden=!mo;clearInterval(TMR);if(cn){renderConn();loadConnAuth();if(wantTerm){var st=document.getElementById('sec-terminal');if(st){st.open=true;st.scrollIntoView({behavior:'smooth',block:'start'})}}}else if(mo){loadHeal();renderMon();loadLive();loadConnAuth();startHubTick();TMR=setInterval(function(){loadLive();loadConnAuth()},HUB_POLL_MS)}else if(hb){renderHub();loadLive();startHubTick();TMR=setInterval(loadLive,HUB_POLL_MS)}else if(p){renderImprove();loadLive();loadPanels();TMR=setInterval(function(){loadLive();loadPanels()},60000)}}
+bindNewModalButtons();addEventListener('hashchange',route);route();
+</script></body></html>
